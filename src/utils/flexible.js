@@ -2,7 +2,7 @@
 
 
 import { computed } from 'vue'
-import { PC_DEVICE_WIDTH } from '../constants'
+import { PC_DEVICE_WIDTH } from '@/constants'
 import { useWindowSize } from '@vueuse/core'
 
 const { width, height } = useWindowSize();//获取当前实际设备屏幕的宽高
