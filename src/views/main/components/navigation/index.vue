@@ -8,6 +8,8 @@
   import mobileNavigationVue from './mobile/index.vue'
   import pcNavigationVue from './pc/index.vue'
 
+  console.log("ismobile",isMobile);
+
   
 </script>
 

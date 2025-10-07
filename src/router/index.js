@@ -6,6 +6,8 @@ import mobileRoutes from './modules/mobile-routers'
 import pcRoutes from './modules/pc-routers'
 
 // 创建vueRouter实例
+// console.log("ismobile",isMobile.value);
+
 const router = createRouter({
   //启用history的url显示模式
   history: createWebHistory(),
