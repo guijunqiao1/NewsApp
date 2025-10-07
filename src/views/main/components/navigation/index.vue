@@ -9,7 +9,6 @@
   import pcNavigationVue from './pc/index.vue'
 
   console.log("ismobile",isMobile);
-
   
 </script>
 
