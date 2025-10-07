@@ -10,10 +10,13 @@ const headers = {
   'Content-Type': 'application/json; charset=UTF-8',
 };
 
+console.log("location",import.meta.env.VITE_BASE_API);
+
 //配置并封装接口基地址
 const service = axios.create({
   //我的AppCode：5caf6b27a0614b56b40155be96f68da9
-  baseURL: '/news',
+  // 根据项目状态，自动切换请求的服务地址
+  baseURL: import.meta.env.VITE_BASE_API,
   timeout: 5000,
   method:'get',
   headers:headers
@@ -22,11 +25,17 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    config.headers.Authorization = `APPCODE ${appcode}`
+    //链式追加
+    config.headers.Authorization = `APPCODE ${appcode}`;
     // if (store.getters.token) {
     //   // 如果token存在 注入token
-    //   config.headers.Authorization = `Bearer ${store.getters.token}`
-    // }
+    //     if (config.headers.Authorization) {
+    //     // 如果 Authorization 已经存在，就追加新的 Authorization 值
+    //       config.headers.Authorization = `Bearer ${store.getters.token} ${config.headers.Authorization}`;
+    //     } else {
+    //       config.headers.Authorization = `Bearer ${store.getters.token}`
+    //     }
+    //   }
     return config // 必须返回配置
   },
   (error) => {
