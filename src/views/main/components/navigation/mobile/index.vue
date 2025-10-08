@@ -10,7 +10,7 @@
     const res = await getCategory();
     console.log(res);
   }
-  getCategoryData();
+  // getCategoryData();
 
 
 
