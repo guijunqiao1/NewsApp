@@ -16,7 +16,6 @@
   const getCategoryData = async () => {
     const result = await getCategory();//解构取参
     categoryData.value = result;
-    console.log(categoryData);
   }
   getCategoryData();//主动获取一次分类列表
 
