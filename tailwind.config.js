@@ -6,11 +6,15 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
   theme: {
     extend: {
       fontSize: {
-        xs: ['0.25rem','0.35rem'],
+        xs: ['0.25rem','0.35rem'],//取值为实际的fontSize的取值
         sm: ['0.35rem','0.45rem'],
         base: ['0.45rem','0.55rem'],
         lg: ['0.55rem','0.65rem'],
         xl: ['0.65rem','0.75rem'],
+      },
+      // 定义了一个 自定义的阴影效果 l-white，其值为 '-10px 0 10px white'
+      boxShadow: {
+        'l-white':'-10px 0 10px white',//取值为实际的boxShadow的取值
       }
     }
   },
