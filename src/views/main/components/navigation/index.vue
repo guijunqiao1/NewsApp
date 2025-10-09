@@ -9,6 +9,7 @@
   import pcNavigationVue from './pc/index.vue';
   import { getCategory } from "@/api/category.js";
   import { ref } from "vue";
+  import { ALL_CATEGORY_ITEM } from "@/constants";
 
   //定义分类列表响应式变量
   const categoryData = ref([]);
@@ -16,8 +17,12 @@
   const getCategoryData = async () => {
     const result = await getCategory();//解构取参
     categoryData.value = result;
+    categoryData.value.unshift(ALL_CATEGORY_ITEM.name);
   }
   getCategoryData();//主动获取一次分类列表
+  // 注意：于此处进行修改会优先于result的数据获取，故会被后续的直接赋值覆盖
+  // categoryData.value = ['1','2','3'];
+
 
 
   

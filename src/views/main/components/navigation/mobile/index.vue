@@ -36,18 +36,24 @@
   import { useScroll } from '@vueuse/core'
   import { onBeforeUpdate, ref, watch } from 'vue'
 
-  defineProps({
+  const props = defineProps({
     data: {
       type: Array,
       required: true
     }
   })
 
+  watch(props.data,()=>{
+    console.log("当前list项目",props.data);
+  },{deep:true})
+
+
+
 
   // 滑块
   const sliderStyle = ref({
     transform: 'translateX(0px)',
-    width: '77px'
+    width: '53px'
   })
 
   // 选中 item 元素--默认取值为第一项

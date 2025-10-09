@@ -36,8 +36,6 @@
     return `#icon-${props.name}`
   })
 
-  console.log("symbolId:",symbolId);
-  console.log("class:",props.fillClass);
 </script>
 
 <style lang="scss" scoped></style>
