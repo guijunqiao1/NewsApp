@@ -4,9 +4,10 @@
       class="relative flex overflow-x-auto p-1 text-base text-zinc-600 overflow-hidden"
       ref="ulTarget"
     >
-      <!-- 汉堡按钮 -->
+      <!-- 弹窗显示按钮 -->
       <li
         class="fixed top-0.5 right-[-1px] h-4 px-1 flex items-center bg-white z-20 shadow-l-white"
+        @click="onshowPopup"
       >
         <m-svg-icon name="hamberger" class="w-2 h-2"></m-svg-icon>
       </li>
@@ -29,6 +30,9 @@
         {{ item }}
       </li>
     </ul>
+    <m-popup v-model="popupVisible">
+      <h1>插槽content</h1>
+    </m-popup>
   </div>
 </template>
 
@@ -43,12 +47,17 @@
     }
   })
 
-  watch(props.data,()=>{
-    console.log("当前list项目",props.data);
+  //初始化弹窗显示var
+  const popupVisible = ref(false);
+
+  //弹窗show方法
+  function onshowPopup(){
+    popupVisible.value = true;
+  }
+
+  watch(()=>popupVisible,(val)=>{
+    console.log("当前可见状态:",val.value);
   },{deep:true})
-
-
-
 
   // 滑块
   const sliderStyle = ref({
