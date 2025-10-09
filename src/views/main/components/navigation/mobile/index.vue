@@ -8,7 +8,7 @@
       <li
         class="fixed top-0.5 right-[-1px] h-4 px-1 flex items-center bg-white z-20 shadow-l-white"
       >
-        <m-svg-icon name="hamberger" fillClass="w-2 h-2"></m-svg-icon>
+        <m-svg-icon name="hamberger" class="w-2 h-2"></m-svg-icon>
       </li>
       <!-- 滑块（指的是当选中元素动态过渡的背景的盒子）,通过absolute的脱离文档流的效果完成 -->
       <li
@@ -43,6 +43,7 @@
     }
   })
 
+
   // 滑块
   const sliderStyle = ref({
     transform: 'translateX(0px)',
@@ -73,9 +74,13 @@
   watch(currentCategoryIndex, (val) => {//当选中元素发生变化的时候--第一个参数为newVal
     // 相对于屏幕的位置信息以及大小信息
     const { left, width } = itemRefs[val].getBoundingClientRect();//使用HTMLElement元素特有的getBoundingClientRect方法
+
+    let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // getComputedStyle获取的所有value都是string类型的object
+    ulPadding = parseInt(ulPadding);//强制转化的同时去0
+
     sliderStyle.value = {
       // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding,因为transform属性<0的时候会从视口的位置向左边移动(并不会脱离视口)
-      transform: `translateX(${ulScrollLeft.value + left - 10}px)`,//横向移动滑块
+      transform: `translateX(${ulScrollLeft.value + left - ulPadding}px)`,//横向移动滑块
       width:`${width}px`//修改滑块体积
     }
   })

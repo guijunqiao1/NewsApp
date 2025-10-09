@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import './style.css'
+import './styles/index.scss'
 import App from './App.vue'
 import router from "./router";//自动索引到其中的index.js
 import { useREM } from './utils/flexible'

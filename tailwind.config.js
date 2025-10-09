@@ -18,7 +18,9 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
       }
     }
   },
-  plugins: []
+  plugins: [
+    
+  ]
 }
 // 配置文件解释：
 // extend：这个关键字表示 扩展 默认的主题，而不是替换默认的配置。

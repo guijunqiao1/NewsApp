@@ -1,5 +1,5 @@
 <template>
-  <mobile-navigation-vue v-if="isMobile"></mobile-navigation-vue>
+  <mobile-navigation-vue :data="categoryData" v-if="isMobile"></mobile-navigation-vue>
   <pc-navigation-vue v-else :data="categoryData" ></pc-navigation-vue>
 </template>
 
