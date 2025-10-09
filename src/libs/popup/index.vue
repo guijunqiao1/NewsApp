@@ -5,15 +5,15 @@
       <!-- 蒙版--控制pop弹窗的显示 -->
       <transition name="fade">
         <div
-          v-if="modelValue"
+          v-if="isVisible"
           class="w-screen h-screen bg-zinc-900/80 z-40 fixed top-0 left-0"
-          @click="onhidPopup"
+          @click="isVisible = false"
         ></div>
       </transition>
       <!-- 内容 -->
       <transition name="popup-down-up"> 
         <div
-          v-if="modelValue"
+          v-if="isVisible"
           v-bind="$attrs"
           class="w-screen bg-white dark:bg-zinc-800 fixed bottom-0 z-50"
         >
@@ -28,7 +28,7 @@
 
 <script setup>
   import { watch } from "vue";
-  import { useScrollLock } from '@vueuse/core';
+  import { useScrollLock,useVModel } from '@vueuse/core';
 
   const props = defineProps({
     modelValue:{//此处为v-model的全量特定写法
@@ -42,15 +42,10 @@
 
   const emits = defineEmits(['update:modelValue']);//注意和正常的function的emit进行区分
 
-
-  //隐藏弹窗方法
-  function onhidPopup(){
-    //记住emit发射的写法
-    emits('update:modelValue',false);
-  }
+  const isVisible = useVModel(props, 'modelValue', emits);//变为双向绑定的ref了
 
   //监听弹出框状态
-  watch(()=>props.modelValue,(val)=>{
+  watch(()=>isVisible,(val)=>{
     console.log("发生变化");
     isLocked.value = val;
   },{deep:true,immediate:true});
