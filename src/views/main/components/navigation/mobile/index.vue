@@ -30,8 +30,9 @@
         {{ item }}
       </li>
     </ul>
-    <m-popup v-model="popupVisible">
-      <h1>插槽content</h1>
+    <m-popup v-model="popupVisible" >
+      <menu-vue :categorys="data" @menuItemClick="onItemClick"></menu-vue>
+      <!-- 注意自定义事件传参机制--上述仅需绑定方法,否则产生副作用 -->
     </m-popup>
   </div>
 </template>
@@ -39,6 +40,8 @@
 <script setup>
   import { useScroll } from '@vueuse/core'
   import { onBeforeUpdate, ref, watch } from 'vue'
+  //单独引入menu组件--非通用形
+  import MenuVue from "../../menu/index.vue";
 
   const props = defineProps({
     data: {
@@ -58,6 +61,13 @@
   watch(()=>popupVisible,(val)=>{
     console.log("当前可见状态:",val.value);
   },{deep:true})
+
+  
+  const onItemClick = (index) => {
+    console.log('-----------------------',index);
+    currentCategoryIndex.value = index
+  }
+
 
   // 滑块
   const sliderStyle = ref({
@@ -86,23 +96,53 @@
   // 获取scroll滚动的响应式数据
   const { x: ulScrollLeft } = useScroll(ulTarget);//解构赋值的别名命名方式
 
-  watch(currentCategoryIndex, (val) => {//当选中元素发生变化的时候--第一个参数为newVal
-    // 相对于屏幕的位置信息以及大小信息
-    const { left, width } = itemRefs[val].getBoundingClientRect();//使用HTMLElement元素特有的getBoundingClientRect方法
 
-    let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // getComputedStyle获取的所有value都是string类型的object
-    ulPadding = parseInt(ulPadding);//强制转化的同时去0
+  // 1:
+  // watch(()=>currentCategoryIndex, (val) => {//当选中元素发生变化的时候--第一个参数为newVal
+  //   // 相对于屏幕的位置信息以及大小信息
+  //   const { left, width } = itemRefs[val.value].getBoundingClientRect();//使用HTMLElement元素特有的getBoundingClientRect方法
 
-    sliderStyle.value = {
-      // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding,因为transform属性<0的时候会从视口的位置向左边移动(并不会脱离视口)
-      transform: `translateX(${ulScrollLeft.value + left - ulPadding}px)`,//横向移动滑块
-      width:`${width}px`//修改滑块体积
+  //   let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // getComputedStyle获取的所有value都是string类型的object
+  //   ulPadding = parseInt(ulPadding);//强制转化的同时去0
+
+  //   sliderStyle.value = {
+  //     // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding,因为transform属性<0的时候会从视口的位置向左边移动(并不会脱离视口)
+  //     transform: `translateX(${ulScrollLeft.value + left - ulPadding}px)`,//横向移动滑块
+  //     width:`${width}px`//修改滑块体积
+  //   }
+  // },{deep:true})
+  // 2:
+  watch(()=>currentCategoryIndex, (val) => {
+    // 相对于屏幕的位置信息
+    // console.log('itemRefs:');
+    // console.dir(itemRefs);
+    // console.log('val:');
+    // console.dir(val.value);
+    // console.log('object:');
+    // console.dir(itemRefs[val.value]);
+    const { left, width } = itemRefs[val.value].getBoundingClientRect()
+    let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // 这里因为这种方法获取的是带有9.375px的字符串
+    ulPadding = parseInt(ulPadding)
+    // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding
+    sliderStyle.value.transform = `translateX(${
+      ulScrollLeft.value + left - ulPadding
+    }px)`
+    sliderStyle.value.width = `${width}px`
+    console.log("222222");
+
+
+
+    // 点击navigation以外的目录，滚动ul
+    if(popupVisible.value){
+      console.log("111111");
+      popupVisible.value = false;//立即退出弹窗状态同时选中为当前的list项
+      //模拟滑块和滚动条同步运动的效果--有偏差
+      ulTarget.value.scrollLeft += left;
+      // 将选中item尽可能放置在视图中间
+      ulTarget.value.scrollLeft -= 140;//减去了总padding的量
     }
-  })
+  },{deep:true})
 
-  const onItemClick = (index) => {
-    currentCategoryIndex.value = index
-  }
 
 
   

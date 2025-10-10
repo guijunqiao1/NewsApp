@@ -15,11 +15,15 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
       // 定义了一个 自定义的阴影效果 l-white，其值为 '-10px 0 10px white'
       boxShadow: {
         'l-white':'-10px 0 10px white',//取值为实际的boxShadow的取值
+      },
+      height:{
+        header:'72px',
+        // 利用了 calc() 函数来进行动态计算。值为 视口高度（100vh）减去一个固定的像素value
+        main:'calc(100vh - 72px)'//floating部分为浮动部分不占据额外的height
       }
     }
   },
   plugins: [
-    
   ]
 }
 // 配置文件解释：
