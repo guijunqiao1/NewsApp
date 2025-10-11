@@ -20,6 +20,10 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
         header:'72px',
         // 利用了 calc() 函数来进行动态计算。值为 视口高度（100vh）减去一个固定的像素value
         main:'calc(100vh - 72px)'//floating部分为浮动部分不占据额外的height
+      },
+      colors:{
+        main: '#f44c58',
+        'hover-main': '#f32836',
       }
     }
   },
