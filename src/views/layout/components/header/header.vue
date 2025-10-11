@@ -8,19 +8,19 @@
         v-lazy
         src="@/assets/icons/news.svg"
         class="h-4 cursor-pointer mr-2 guide-home"
-        @click="toHome"
+        @click="to_Home"
       />
-      <header-search-vue></header-search-vue>
-      <header-theme-vue></header-theme-vue>
-      <header-my-vue></header-my-vue>
+      <header-search></header-search>
+      <header-theme></header-theme>
+      <header-my></header-my>
     </div>
   </div>
 </template>
 
-<script>
-  import headerMyVue from './header-my.vue'
-  import headerThemeVue from './header-theme.vue'
-  import headerSearchVue from './header-search.vue'
+<script setup>
+  import headerMy from './header-my.vue'
+  import headerTheme from './header-theme.vue'
+  import headerSearch from './header-search.vue'
   import { useRouter } from 'vue-router'
 
 
