@@ -19,7 +19,7 @@
       ></li>
       <!-- 列表项内容 -->
       <li
-        v-for="(item, index) in data"
+        v-for="(item, index) in $store.getters.categorys"
         class="shrink-0 px-1.5 py-0.5 duration-200 last:mr-4"
         :ref="setItemRef"
         :class="{ 'text-zinc-100': index === currentCategoryIndex }"
@@ -31,7 +31,7 @@
       </li>
     </ul>
     <m-popup v-model="popupVisible" >
-      <menu-vue :categorys="data" @menuItemClick="onItemClick"></menu-vue>
+      <menu-vue @menuItemClick="onItemClick"></menu-vue>
       <!-- 注意自定义事件传参机制--上述仅需绑定方法,否则产生副作用 -->
     </m-popup>
   </div>
@@ -43,12 +43,6 @@
   //单独引入menu组件--非通用形
   import MenuVue from "../../menu/index.vue";
 
-  const props = defineProps({
-    data: {
-      type: Array,
-      required: true
-    }
-  })
 
   //初始化弹窗显示var
   const popupVisible = ref(false);

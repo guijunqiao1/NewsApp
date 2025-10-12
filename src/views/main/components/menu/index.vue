@@ -4,7 +4,7 @@
     <!-- 纵轴溢出使用scroll类名赋值 -->
     <ul class="overflow-y-scroll">
       <li
-        v-for="(item, index) in categorys"
+        v-for="(item, index) in $store.getters.categorys"
         @click="childItemClick(index)"
         class="text-lg text-zinc-900 px-1 py-1.5 duration-100 active:bg-zinc-100"
       >
@@ -15,12 +15,7 @@
 </template>
 
 <script setup>
-  defineProps({
-    categorys: {
-      required: true,
-      type: Array
-    }
-  })
+
 
   const emits = defineEmits(['menuItemClick']);
 

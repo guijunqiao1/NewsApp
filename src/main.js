@@ -6,10 +6,12 @@ import { useREM } from './utils/flexible'
 import mLibs from './libs'//应用注册的svg-icon组件
 // 通常与使用 Vite 和 svg-icons 插件 相关。注册在项目中使用的 SVG 图标。--在vite-config-js中指定范围
 import 'virtual:svg-icons-register'
+// 获取仓库注册文件后应用-vuex
+import store from './store'
 
 
 
-createApp(App).use(router).use(mLibs).mount('#app');
+createApp(App).use(router).use(store).use(mLibs).mount('#app');
 
 //设置根元素的字体大小便于使用rem单位
 useREM()
