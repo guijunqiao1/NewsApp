@@ -1,17 +1,23 @@
 <template>
-  <div class="bg-white sticky top-0 left-0 z-10">
+  <div class="bg-white sticky left-0 w-full z-10">
     <ul
-      class="relative flex overflow-x-auto p-1 text-base text-zinc-600 overflow-hidden"
+      class="w-[800px] m-auto relative flex flex-wrap justify-center px-[10px] py-1 text-base duration-300"
     >
-      <!-- 汉堡按钮 -->
-      <li
-        class="fixed top-0.5 right-[-1px] h-4 px-1 flex items-center bg-white z-20 shadow-l-white"
+      <!-- 右边箭头 -->
+      <div
+        class="absolute right-1 bottom-1 z-20 p-1 rounded cursor-pointer duration-200 hover:bg-zinc-200"
       >
-        <m-svg-icon name="hamberger" fillClass="w-2 h-2"></m-svg-icon>
-      </li>
+        <m-svg-icon
+          name="unfold"
+          class="w-1 h-1"
+          fillClass="fill-zinc-900"
+        ></m-svg-icon>
+      </div>
+      <!-- item -->
       <li
-        v-for="item in data"
-        class="shrink-0 px-1.5 py-0.5 duration-200 last:mr-4"
+        v-for="item in $store.getters.categorys"
+        :key="item"
+        class="shrink-0 px-1.5 py-1 z-10 duration-200 text-zinc-900 mt-1 font-bold rounded cursor-pointer hover:bg-zinc-200"
       >
         {{ item }}
       </li>
@@ -22,12 +28,7 @@
 <script setup lang="ts">
 
 
-  defineProps({
-    data:{
-      type:Array,
-      require: true
-    }
-  })
+
 
 
 </script>

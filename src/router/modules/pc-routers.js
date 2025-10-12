@@ -3,7 +3,16 @@
 export default [
   {
     path: '/',
-    name: 'home',
+    name: 'main',
     component: () => import('@/views/layout/index.vue'),
+    // 嵌套子路由
+    // 此处的匹配顺序为：layout中的main-vue组件中的router-view直接被子路由命中并且渲染其中的navigation组件，最终匹配上pc-navigation的index.vue
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('@/views/main/index.vue')
+      }
+    ]
   }
 ]
