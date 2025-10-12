@@ -21,6 +21,9 @@
 </template>
 
 <script>
+
+    // 枚举延时关闭时间
+    const DELAY_TIME = 700
     const PROP_TOP_LEFT = 'top-left'
     const PROP_TOP_RIGHT = 'top-right'
     const PROP_BOTTOM_LEFT = 'bottom-left'
@@ -76,11 +79,24 @@
     }
     const isVisible = ref(false)
 
+    //定时器变量
+    let timer
+
+
+
     const onMouseenter = () => {
         isVisible.value = true
+        if(timer){
+            clearTimeout(timer);
+        }
     }
+    // 防抖延迟关闭
     const onMouseleave = () => {
-        isVisible.value = false
+        timer = setTimeout(() => {
+            isVisible.value = false
+            //关闭后手动清除内存
+            timer = null
+        }, DELAY_TIME)
     }
 
 
