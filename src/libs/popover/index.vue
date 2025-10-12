@@ -8,6 +8,7 @@
     <!-- 气泡展示 -->
     <transition name="slide">
       <div
+        v-if="slots.default"
         ref="contentTarget"
         v-show="isVisible"
         class="absolute p-1 z-20 bg-white border rounded border-zinc-200"
@@ -23,7 +24,7 @@
 <script>
 
     // 枚举延时关闭时间
-    const DELAY_TIME = 700
+    const DELAY_TIME = 200
     const PROP_TOP_LEFT = 'top-left'
     const PROP_TOP_RIGHT = 'top-right'
     const PROP_BOTTOM_LEFT = 'bottom-left'
@@ -45,7 +46,10 @@
      * 4. 计算弹层位置
      * 5. 根据 prop，计算样式对象
      */
-    import { ref, watch, nextTick } from 'vue'
+    import { ref, watch, nextTick,useSlots } from 'vue'
+
+    //获取插槽实例对象
+    const slots = useSlots();
 
     const props = defineProps({
         // 气泡弹出位置，位置不对给出错误提示
@@ -81,8 +85,6 @@
 
     //定时器变量
     let timer
-
-
 
     const onMouseenter = () => {
         isVisible.value = true

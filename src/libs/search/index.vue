@@ -48,7 +48,7 @@
     <transition name="slide">
       <!-- 条件渲染命名插槽框架(本身占据空间) -->
       <div
-        v-if="$slots.dropdown"
+        v-if="slots.dropdown"
         v-show="isFocus"
         class="max-h-[368px] w-full text-base overflow-auto bg-white dark:bg-zinc-800 absolute z-20 left-0 top-[56px] p-2 rounded border border-zinc-200 dark:border-zinc-600 duration-200 hover:shadow-2xl  scrollbar-thin xl:scrollbar-thumb-zinc-200 xl:dark:scrollbar-thumb-zinc-900 scrollbar-track-transparent"
       >
@@ -80,7 +80,7 @@
 
 <script setup>
   import { onClickOutside, useVModel } from '@vueuse/core'
-  import { ref, watch } from 'vue'
+  import { ref, watch,useSlots } from 'vue'
   /**
    * 1. 输入内容实现双向数据绑定
    * 2. 搜索按钮在 hover 时展示
@@ -93,6 +93,10 @@
    * 
    * 注意封装的通用组建的原则：事件仅用于发射
    */
+
+  //获取插槽实例
+  const slots = useSlots();
+
   const props = defineProps({
     modelValue: {
       type: String,
