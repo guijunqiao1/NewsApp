@@ -29,12 +29,11 @@ service.interceptors.request.use(
     config.headers.Authorization = `APPCODE ${appcode}`;
 
 
-    // 针对特定请求，设置强缓存
-    if (config.url.includes('channel')) {  // 假设你的静态资源 URL 包含 'channel'，可以根据实际情况调整
-      config.headers['Cache-Control'] = 'public, max-age=31536000, immutable'; // 设置缓存1年，且资源不可变
-      //  ≈
-      console.log("成功命中");
-    }
+    // // 针对特定请求，设置强缓存---该方式暂时无效，后续排因
+    // if (config.url.includes('channel')) {  // 假设你的静态资源 URL 包含 'channel'，可以根据实际情况调整
+    //   config.headers['Cache-Control'] = 'public, max-age=31536000, immutable'; // 设置缓存1年，且资源不可变
+    //   console.log("成功命中");
+    // }
 
 
     // if (store.getters.token) {

@@ -1,4 +1,4 @@
-import { ALL_CATEGORY_ITEM } from '@/constants'
+import { ALL_CATEGORY_ITEM,CATEGORY_NOMAR_DATA } from '@/constants'
 import { getCategory } from '@/api/category'
 
 /**
@@ -8,7 +8,7 @@ export default {
   // 独立作用域--后续声明使用内容需要加上category的命名空间的前缀
   namespaced: true,
   state: () => ({
-    categorys: []
+    categorys: CATEGORY_NOMAR_DATA
   }),
   mutations: {//同步方法
     setCategorys(state, categorys) {

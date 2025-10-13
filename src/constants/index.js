@@ -7,6 +7,30 @@ export const ALL_CATEGORY_ITEM = {
   id: 'all'
 }
 
+// 初始 category 数据
+export const CATEGORY_NOMAR_DATA = [
+  ALL_CATEGORY_ITEM.name,
+  "头条",
+  "新闻",
+  "国内",
+  "国际",
+  "政治",
+  "财经",
+  "体育",
+  "娱乐",
+  "军事",
+  "教育",
+  "科技",
+  "NBA",
+  "股票",
+  "星座",
+  "女性",
+  "育儿"
+]
+
+
+
+
 // 暗黑主题
 export const THEME_DARK = 'dark'
 // 浅色主题
