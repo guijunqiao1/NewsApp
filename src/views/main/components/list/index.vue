@@ -1,6 +1,8 @@
 <template>
-  <div>
-    <item-vue v-for="item in pexelsList" :key="item.id" :data="item"></item-vue>
+  <div class="">
+    <div v-for="item in newsList">
+      <item-vue :data="item"></item-vue>
+    </div>
   </div>
 </template>
 
@@ -10,12 +12,12 @@
   import itemVue from './item.vue'
   import {ref} from 'vue'
   
-  let query = { chnnel:'头条',nums:10,start:0 };
+  let query = { channel:'头条',nums:10,start:0 };
   const newsList = ref([]);
 
   const getNewsData = async () => {
-    let res = await getNewsList(query);
-    newsList.value = res.list;
+    let res = await getNewsList(query);//需要注意此处被响应拦截包装了一层对象，使用result属性访问原值
+    newsList.value = res.result.list;
   }
   getNewsData();
 </script>

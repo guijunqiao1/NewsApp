@@ -30,6 +30,12 @@ export const CATEGORY_NOMAR_DATA = [
 
 
 
+//新闻类型字段映射对象
+const news_type_reflect_obj = {
+
+}
+
+
 
 // 暗黑主题
 export const THEME_DARK = 'dark'

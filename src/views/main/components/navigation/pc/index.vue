@@ -38,6 +38,8 @@
   import { useStore } from 'vuex'
 
   const store = useStore()
+
+  console.log("pc_navigation成功挂载");
   
 
   /**

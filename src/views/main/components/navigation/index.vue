@@ -9,10 +9,6 @@
   import pcNavigationVue from './pc/index.vue';
   import { useStore } from 'vuex';
 
-  const store = useStore();
-  // 触发 category 获取数据
-  store.dispatch('category/useCategoryData');
-
 
 
 

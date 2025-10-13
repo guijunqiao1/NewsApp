@@ -1,6 +1,6 @@
 <template>
   <div class="h-full bg-white dark:bg-zinc-800 duration-500">
-    <navigation-vue></navigation-vue>
+    <navigation></navigation>
     <div class="max-w-screen-xl mx-auto relative xl:mt-3">
       <list-vue></list-vue>
     </div>
