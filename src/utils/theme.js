@@ -7,7 +7,7 @@ let matchMedia
 const watchSystemTheme = () => {
   // 仅需一次初始化
   if (matchMedia) return
-  //调用窗口API--获取的是操作系统相关的当前实际屏幕所呈现出来的偏向主题
+  //调用窗口API--获取的是操作系统相关的当前实际屏幕所呈现出来的偏向主题--注意亮度无法控制，就是设置中明确的主题
   matchMedia = window.matchMedia('(prefers-color-scheme: dark)')
   // 补充：
   // （1）window.matchMedia('(prefers-color-scheme: dark)') 这个语句用来检测用户系统的颜色模式（暗色或亮色）。它会返回一个 MediaQueryList 对象。
@@ -16,6 +16,7 @@ const watchSystemTheme = () => {
 
   // 监听主题变更--监听的是用户机器的主题
   matchMedia.onchange = () => {
+    //系统主题发生变化
     changeTheme(THEME_SYSTEM)
   }
 }
