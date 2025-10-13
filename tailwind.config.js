@@ -3,6 +3,8 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
     // 如果你想从 CommonJS 导入 ESM，你需要使用动态导入（import()）。
     // 如果你想从 ESM 导入 CommonJS，你会访问到 CommonJS 模块的 default 导出。
   content: ['./index.html', './src/**/*.{vue,js}'],
+  // 黑暗模式
+  darkMode: 'class',
   theme: {
     extend: {
       fontSize: {
@@ -15,6 +17,7 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
       // 定义了一个 自定义的阴影效果 l-white，其值为 '-10px 0 10px white'
       boxShadow: {
         'l-white':'-10px 0 10px white',//取值为实际的boxShadow的取值
+        'l-zinc':'-10px 0 10px #18181b',
       },
       height:{
         header:'72px',
