@@ -8,10 +8,15 @@ import mLibs from './libs'//应用注册的svg-icon组件
 import 'virtual:svg-icons-register'
 // 获取仓库注册文件后应用-vuex
 import store from './store'
+// 添加全局主题修改监听器，动态修改html的主题类名
+import useTheme from '@/utils/theme'
+
 
 
 
 createApp(App).use(router).use(store).use(mLibs).mount('#app');
 
 //设置根元素的字体大小便于使用rem单位
-useREM()
+// 首发配置
+useREM();//启动计算
+useTheme();//启动监听器
