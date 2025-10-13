@@ -16,7 +16,7 @@
           v-if="isVisible"
           v-bind="$attrs"
           class="w-screen bg-white dark:bg-zinc-800 fixed bottom-0 z-50"
-        >
+          >
           <!-- v-bind=""即为将剩余属性渗透到子组件中的特殊用法(不用一个个写剩余属性的赋值了) -->
           <slot></slot>
         </div>
