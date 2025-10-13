@@ -1,7 +1,7 @@
 <template>
-  <div class="h-full bg-white dark:bg-zinc-800 duration-500">
+  <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500">
     <navigation></navigation>
-    <div class="max-w-screen-xl mx-auto relative xl:mt-3">
+    <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500">
       <list-vue></list-vue>
     </div>
   </div>
