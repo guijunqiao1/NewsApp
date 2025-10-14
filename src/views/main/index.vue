@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500">
+  <div class="h-full overflow-x-auto bg-white dark:bg-zinc-800 duration-500">
     <navigation></navigation>
     <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500">
       <list-vue></list-vue>

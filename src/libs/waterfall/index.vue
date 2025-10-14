@@ -5,11 +5,11 @@
     :style="{ height: containerHeight + 'px'}"
   >
     <!-- 数据渲染 -->
-    <template v-if="data.length && columnWidth">
+    <template v-if="columnWidth && data.length">
       <div
         v-for="(item, index) in data"
         :key="index"
-        class="m-waterfull-item absolute duration-300"
+        class="m-waterfull-item absolute"
         :style="{
           width: columnWidth + 'px',
         }"
@@ -148,9 +148,9 @@
         itemElements.forEach((el) => {
           itemHeights.push(el.clientHeight)
         })
+          // 渲染位置--在确保加载完成之后再进行位置计算
+          useItemLocation()
       })
-      // 渲染位置
-      useItemLocation()
     }
     /**
      * 得到每个 item 的位置信息
@@ -161,9 +161,9 @@
       // 遍历数据源
       props.data.forEach((item, index) => {
         // 避免重复计算
-        // if (item._style) {
-        //   return
-        // }
+        if (item._style) {
+          return
+        }
         // 生成 style 元素
         item._style = {}
         item._style.left = getItemLeft()
@@ -182,7 +182,6 @@
     const getItemLeft = () => {
       // 获取最小列 index
       const minIndex = getMinHeightIndex(columnHeightObj.value)
-      // console.log('containerLeft.value', containerLeft.value)
       return (
         minIndex * (props.columnSpacing + columnWidth.value) + containerLeft.value
       )
@@ -223,13 +222,12 @@
     // 触发计算
     watch(
       ()=>props.data,
-      // [()=> props.column, () => props.data, () => props.rowSpacing],
       (newVal) => {
-        // 如果数组有一个没有._style，则重新构建容器
-        // const resetColumnHeight = newVal.some((item) => !item._style)
-        // if (resetColumnHeight) {
-        useColumnHeightObj() 
-        // }
+        // 如果数组每一个都没有._style，则重新构建容器
+        const resetColumnHeight = newVal.every((item) => !item._style)
+        if (resetColumnHeight) {
+          useColumnHeightObj() 
+        }
         nextTick(() => {// 将计算操作添加到微队列中--需要注意的是watch回调的内容本身也是微队列，此处还使用一次nextTick包裹内容进行微队列的加入的含义在于：
           //   //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
           if (props.picturePreReading) {
@@ -240,11 +238,23 @@
         })
       },
       {
-        // deep:true,
+        deep:true,
         //需要注意此处的deep的配置项产生地狱的原因来源于nextTick的
-        immediate:true 
+        // immediate:true 
       }
     )
+
+    //监听传递的列数
+    watch(()=>props.column,(newVal)=>{
+      // 重新计算列宽
+      useColumnWidth()
+      // 重置所有定位数据
+      props.data.forEach((item) => {
+        item._style = null
+      })
+    },{
+      deep:true
+    })
 
 </script>
 
