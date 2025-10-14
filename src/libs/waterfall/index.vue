@@ -24,7 +24,8 @@
 </template>
 
 <script setup>
-    import { computed, ref, onMounted } from 'vue'
+  import { computed, ref, onMounted, nextTick, watch } from 'vue'
+  import { getImgElements, getAllImg, onComplateImgs } from './utils'
 
     const props = defineProps({
         // 数据源
@@ -102,8 +103,69 @@
     onMounted(() => {//计算方法的定义放在组件创建前区域，实际调用发生在挂载完毕阶段
         // 开始计算
         useColumnWidth()
-        console.log(columnWidth.value)
     })
+
+
+
+    // 图片高度集合
+    let itemHeights = []
+    /**
+     * 需要等待图片预加载完成--触发在每次props数据源重新获取的时候立即进行src的预加载
+     */
+    const waitImgComplate = () => {
+      itemHeights = []
+      // 拿到所有元素
+      let itemElements = [...document.getElementsByClassName('m-waterfull-item')]
+      // 获取所有的 img 元素
+      const imgElements = getImgElements(itemElements)
+      // 获取所有图片的链接
+      const imgs = getAllImg(imgElements)
+      // 等待图片加载完成
+      onComplateImgs(imgs).then(() => {
+        // 图片加载完成，可获取高度
+        itemElements.forEach((el) => {
+          itemHeights.push(el.clientHeight)
+        })
+      })
+      // 渲染位置
+      useItemLocation()
+    }
+    // 得到每个 item 的位置信息
+    const useItemLocation = () => {
+      console.log(itemHeights)
+    }
+    /**
+     * 不进行预加载，计算 item 的高度--在props没有相应传参的情况下进行调用
+     */
+    const useItemHeight = () => {
+      itemHeights = []
+      // 拿到所有元素
+      let itemElements = [...document.getElementsByClassName('m-waterfull-item')]
+      // 直接获取 item 高度
+      itemElements.forEach((el) => {
+        itemHeights.push(el.clientHeight)
+      })
+      // 渲染位置
+      useItemLocation()
+    }
+    // 触发计算
+    watch(
+      () => props.data,
+      (newVal) => {
+        nextTick(() => {//将计算操作添加到微队列中
+          if (props.picturePreReading) {
+            waitImgComplate()
+          } else {
+            useItemHeight()
+          }
+        })
+      },
+      {
+        deep: true,
+        immediate:true 
+      }
+    )
+
 </script>
 
 <style lang="scss" scoped></style>
