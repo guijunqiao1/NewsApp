@@ -1,7 +1,7 @@
 <!-- 注意此处的插槽的用法：使用即将插入到的插槽本身所携带的item,width属性进行内容的进一步扩展 -->
 <template>
   <div class="">
-    <m-waterfall class="p-1 w-full"  :data="newsList" nodeKey="id" :column="isMobileTerminal ? 2 : 4" :picturePreReading="false" :rowSpacing="10">
+    <m-waterfall class="p-1 w-full"  :data="newsList" nodeKey="id" :column="isMobileTerminal ? 2 : 4" :picturePreReading="true" :rowSpacing="10">
       <template v-slot="{ item, width }">
         <item-vue :data="item" :width="width"></item-vue>
       </template>

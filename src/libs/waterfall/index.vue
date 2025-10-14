@@ -9,7 +9,7 @@
       <div
         v-for="(item, index) in data"
         :key="index"
-        class="m-waterfull-item absolute"
+        class="m-waterfull-item absolute duration-500"
         :style="{
           width: columnWidth + 'px',
         }"
@@ -244,8 +244,10 @@
       }
     )
 
-    //监听传递的列数
-    watch(()=>props.column,(newVal)=>{
+    //监听传递的列相关纬度的信息
+    watch(
+    [() => props.column, () => props.rowSpacing, () => props.columnSpacing],
+    (newVal)=>{
       // 重新计算列宽
       useColumnWidth()
       // 重置所有定位数据
