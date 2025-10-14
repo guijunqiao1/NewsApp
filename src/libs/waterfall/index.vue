@@ -2,7 +2,7 @@
   <div
     class="flex"
     ref="containerTarget"
-    :style="{ height: containerHeight }"
+    :style="{ height: containerHeight + 'px'}"
   >
     <!-- 数据渲染 -->
     <template v-if="data.length && columnWidth">
@@ -23,9 +23,17 @@
   </div>
 </template>
 
+
 <script setup>
   import { computed, ref, onMounted, nextTick, watch } from 'vue'
-  import { getImgElements, getAllImg, onComplateImgs } from './utils'
+  import {
+    getImgElements,
+    getAllImg,
+    onComplateImgs,
+    getMinHeightIndex,
+    getMinHeight,
+    getMaxHeight
+  } from './utils'
 
     const props = defineProps({
         // 数据源
@@ -45,7 +53,7 @@
         },
         // 行间距
         rowSpacing: {
-            defaul: 20,
+            default: 20,
             type: Number
         },
         // 是否需要进行图片预读取
@@ -64,13 +72,18 @@
     const containerLeft = ref(0)
     // 记录每列高度的容器
     const columnHeightObj = ref({})
-    // 初始化各列的高度为0
+    /**
+     * 初始化各列的高度为0
+     */
     const useColumnHeightObj = () => {
+        columnHeightObj.value = {}
         for (let i = 0; i < props.column; i++) {
             columnHeightObj.value[i] = 0
         }
     }
-    // 计算容器宽度
+    /**
+     * 计算容器宽度
+     */
     const useContainerWidth = () => {
         const { paddingLeft, paddingRight } = getComputedStyle(containerTarget.value);//利用document直接提供的Api直接获取容器的计算属性
         // 容器左边距
@@ -92,7 +105,9 @@
     const columnSpacingTotal = computed(() => {
         return (props.column - 1) * props.columnSpacing
     })
-    // 计算列宽
+    /**
+     * 计算列宽
+     */
     const useColumnWidth = () => {
         // 获取容器宽度
         useContainerWidth()
@@ -103,6 +118,13 @@
     onMounted(() => {//计算方法的定义放在组件创建前区域，实际调用发生在挂载完毕阶段
         // 开始计算
         useColumnWidth()
+    })
+
+    onMounted(() => {
+      // 清除所有的._style
+      props.data.forEach((item) => {
+        delete item._style
+      })
     })
 
 
@@ -130,10 +152,60 @@
       // 渲染位置
       useItemLocation()
     }
-    // 得到每个 item 的位置信息
+    /**
+     * 得到每个 item 的位置信息
+     */
     const useItemLocation = () => {
-      console.log(itemHeights)
+      // 获取位置信息前重新计算列宽
+      useColumnWidth()
+      // 遍历数据源
+      props.data.forEach((item, index) => {
+        // 避免重复计算
+        // if (item._style) {
+        //   return
+        // }
+        // 生成 style 元素
+        item._style = {}
+        item._style.left = getItemLeft()
+        item._style.top = getItemTop()
+
+        // 确定完当前 item 的位置后，对应列高度加上 itemHeight
+        increaseHeight(index)
+      })
+      // 更新容器高度
+      containerHeight.value = getMaxHeight(columnHeightObj.value)
     }
+
+    /**
+     * 获取下个 item 项的 left 值，等于最小高度所在列 * (列间距 + 列宽)
+     */
+    const getItemLeft = () => {
+      // 获取最小列 index
+      const minIndex = getMinHeightIndex(columnHeightObj.value)
+      // console.log('containerLeft.value', containerLeft.value)
+      return (
+        minIndex * (props.columnSpacing + columnWidth.value) + containerLeft.value
+      )
+    }
+
+    /**
+     * 获取下个 item 项的 top 值，等于最小高度所在列高度
+     */
+    const getItemTop = () => {
+      return getMinHeight(columnHeightObj.value)
+    }
+    /**
+     * 指定列高度自增
+     */
+    const increaseHeight = (index) => {
+      //最小高度所在列
+      const minIndex = getMinHeightIndex(columnHeightObj.value)
+      columnHeightObj.value[minIndex] += itemHeights[index] + props.rowSpacing
+    }
+
+
+
+
     /**
      * 不进行预加载，计算 item 的高度--在props没有相应传参的情况下进行调用
      */
@@ -150,9 +222,16 @@
     }
     // 触发计算
     watch(
-      () => props.data,
+      ()=>props.data,
+      // [()=> props.column, () => props.data, () => props.rowSpacing],
       (newVal) => {
-        nextTick(() => {//将计算操作添加到微队列中
+        // 如果数组有一个没有._style，则重新构建容器
+        // const resetColumnHeight = newVal.some((item) => !item._style)
+        // if (resetColumnHeight) {
+        useColumnHeightObj() 
+        // }
+        nextTick(() => {// 将计算操作添加到微队列中--需要注意的是watch回调的内容本身也是微队列，此处还使用一次nextTick包裹内容进行微队列的加入的含义在于：
+          //   //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
           if (props.picturePreReading) {
             waitImgComplate()
           } else {
@@ -161,7 +240,8 @@
         })
       },
       {
-        deep: true,
+        // deep:true,
+        //需要注意此处的deep的配置项产生地狱的原因来源于nextTick的
         immediate:true 
       }
     )
