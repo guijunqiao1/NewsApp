@@ -54,6 +54,9 @@
   data: {
     type: Object,
     required: true
+  },
+  width:{
+    type: Number,
   }
 })
 
