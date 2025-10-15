@@ -73,7 +73,7 @@
      * 需要监听 loading 状态，
      */
     watch(loading, (val) => {
-      setTimeout(emitLoad, 100)
+      setTimeout(emitLoad, 500)
       // emitLoad()
     })
 </script>

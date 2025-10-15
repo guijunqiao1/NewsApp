@@ -2,7 +2,12 @@
   <div
     class="bg-white dark:bg-zinc-900 xl:dark:bg-zinc-800 rounded pb-1"
   >
-    <div class="group relative w-full cursor-zoom-in">
+    <div 
+    class="group relative w-full cursor-zoom-in rounded"
+    :style="{
+      backgroundColor: randomRGB()
+    }"  
+    >
       <!-- 图片 -->
       <img :src="data.pic" class="w-full rounded" />
       <!-- 遮罩层 -->
@@ -50,6 +55,8 @@
 </template>
 
 <script setup>
+  //引入随机颜色方法
+  import { randomRGB } from '@/utils/color.js'
   const props =  defineProps({
   data: {
     type: Object,
