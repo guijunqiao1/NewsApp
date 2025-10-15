@@ -1,8 +1,14 @@
 // store计算属性(计算state)文件
 
 export default{
-  // 简单访问
+  // 简单访问--分类总list
   categorys: (state)=> state.category.categorys,//返回index主仓库程序文件中的category-module中的categorys变量
   // 当前主题
-  themeType: (state) => state.theme.themeType,//连续索引综合管理
+  themeType: (state) => state.theme.themeType,
+  // 当前category
+  currentCategory: (state) => state.app.currentCategory,
+  // 当前category 的下标
+  currentCategoryIndex: (state, getters) => {
+    return getters.categorys.findIndex((item) => item.id === getters.currentCategory.id)
+  }
 }

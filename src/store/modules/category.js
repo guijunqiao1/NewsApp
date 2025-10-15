@@ -13,7 +13,7 @@ export default {
   mutations: {//同步方法
     setCategorys(state, categorys) {
         console.log("cate:",categorys);
-      state.categorys = [ALL_CATEGORY_ITEM.name, ...categorys]
+      state.categorys = [ALL_CATEGORY_ITEM, ...categorys]
     }
   },
   actions: {//异步方法

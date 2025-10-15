@@ -25,7 +25,7 @@
             ? 'bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-300'
             : ''
         ]"
-        @click="onItemClick(index)"
+        @click="onItemClick(item)"
       >
         {{ item }}
       </li>
@@ -33,7 +33,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
   import { ref } from 'vue'
   import { useStore } from 'vuex'
 
@@ -53,9 +53,8 @@
   /**
    * 选中状态处理
    */
-  const currentCategoryIndex = ref(0)
-  const onItemClick = (index:any) => {
-    currentCategoryIndex.value = index
+  const onItemClick = (item) => {
+    store.commit('app/changeCurrentCategory', item)
   }
 
 

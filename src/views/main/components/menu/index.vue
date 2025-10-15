@@ -5,7 +5,7 @@
     <ul class="overflow-y-scroll">
       <li
         v-for="(item, index) in $store.getters.categorys"
-        @click="childItemClick(index)"
+        @click="childItemClick(item)"
         class="text-lg text-zinc-900 px-1 py-1.5 duration-100 active:bg-zinc-100 dark:text-zinc-300 dark:active:bg-zinc-900"
         >
         {{ item }}
@@ -20,7 +20,6 @@
   const emits = defineEmits(['menuItemClick']);
 
   function childItemClick(index){
-    console.log("index:",index);
     emits('menuItemClick',index);
   }
 

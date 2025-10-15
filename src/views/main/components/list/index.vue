@@ -10,7 +10,7 @@
       class="p-1 w-full"
       :data="newsList"
       nodeKey="id"
-      :column="isMobile ? 2 : 4"
+      :column="isMobile ? 2 : 5"
       :picturePreReading="false"
       :rowSpacing="10"
     >
@@ -27,7 +27,14 @@
   import { getNewsList } from '@/api/news'
   //引入新闻项组件
   import itemVue from './item.vue'
-  import {ref} from 'vue'
+  import { ref,watch } from 'vue'
+  //引入储存库对象
+  // import store from '@/store';
+  import { useStore } from "vuex";
+  // 需要注意此处获取的库对象是非响应式的，只能当前影响到stroe中，其他地方的影响此处无法察觉，而import { useStore } from "vuex",const store = useStore()的方式获取到的是响应式的store对象，
+  //其实也可以在每次使用前来一次import('@/stote')的方式等价
+
+  const store = useStore();
 
   console.log("挂载list成功");
   
@@ -36,7 +43,27 @@
   // 数据是否全部加载完成
   const isFinished = ref(false)
 
-  let query = { start: 0, nums: 20, channel:'头条' };
+  let query = { start: 0, nums: 10, channel:'头条' };
+
+  /**
+   * 通过重置quer有，重新发起请求
+   */
+  const resetQuery = (newQuery) => {
+    query = { ...query, ...newQuery };//此处利用对象合并取后value的技巧
+    // 重置状态
+    isFinished.value = false
+    // waterfall 会监听数据变化，重新渲染布局
+    newsList.value = []
+  }
+  // 监听 currentCategory 变化
+  watch(
+    () => store.getters.currentCategory,
+    (currentCategory) => {
+      resetQuery({ start: 0, channel: currentCategory.name })
+    }
+  )
+
+
   // 数据源  
   const newsList = ref([]);
 
