@@ -7,6 +7,7 @@ import getters from './getters'
 import category from './modules/category'
 import theme from './modules/theme'
 import app from "./modules/app"
+import search from './modules/search'
 
 
 const store = createStore({
@@ -16,14 +17,15 @@ const store = createStore({
     //新增主题模块--并整合
     theme,
     //添加分类信息统一管理模块
-    app
+    app,
+    search
   },
   plugins: [
     createPersistedState({
       // 指定到localStorage 中的key
       key: 'News-app',
-      // 需要保存的模块--注意保存的是state中的指定的下方的模块名--app不用，是会变化的
-      paths: ['category','theme']
+      // 需要保存的模块--注意保存的是state中的指定的下方的模块名--app不用，是会变化的,搜索历史模块需要保存-故添加
+      paths: ['category','theme','search']
     })
   ]
 })

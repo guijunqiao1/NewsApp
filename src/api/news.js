@@ -117,27 +117,49 @@ export const getNewsList = (data) => {
     }
   };
 
-  const promise_res = res_obj;
+  // 模拟数据写法：
+  return Promise.resolve(res_obj);//直接返回值也会被封装成这样---与外置的await相对应
 
   // 返回正常请求结果的写法：
   // return requset({
   //   url: `/get?channel=${data.channel}&nums=${data.nums}&start=${data.start}`,
   // })
-
-
-  // 模拟数据写法：
-  return Promise.resolve(promise_res);//直接返回值也会被封装成这样---与外置的await相对应
 }
 
 
 /**
- * 获取搜索提示--写了逻辑，但是没有接口，基本没问题的
+ * 获取搜索提示--写了逻辑，但是没有接口，就固定相应内容即可
  */
 export const getHint = (q) => {
-  return request({
-    url: '/news/hint',
-    params: {
-      q
-    }
-  })
+  // 返回正常请求结果的写法：
+  // return request({
+  //   url: '/news/hint',
+  //   params: {
+  //     q
+  //   }
+  // })
+
+  //模拟返回的promise:
+  const res_obj = {
+    "success": true,
+    "code": 200,
+    "data": {
+        "total": 10,
+        "result": [
+            "mac",
+            "macbook pro",
+            "macbook",
+            "maciej kuciara",
+            "mac壁纸",
+            "macaron",
+            "mac 壁纸",
+            "macbook air",
+            "macarons",
+            "mac pro"
+        ]
+    },
+    "message": "success"
+  };
+
+  return Promise.resolve(res_obj);
 }

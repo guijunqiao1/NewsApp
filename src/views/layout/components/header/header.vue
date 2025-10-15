@@ -20,7 +20,8 @@
 <script setup>
   import headerMy from './header-my.vue'
   import headerTheme from './header-theme.vue'
-  import headerSearch from './header-search.vue'
+  //需要注意非js无法直接连文件都省略简写了
+  import headerSearch from './header-search/index.vue'
   import { useRouter } from 'vue-router'
 
 

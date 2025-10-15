@@ -41,13 +41,15 @@
      */
     const hintData = ref([])
     const getHintData = async () => {
+        console.log("搜索了n次关键字");
         //为空的情况下则清空及不搜索
         if (!props.searchText) {    
             hintData.value = '';
             return;            
         }
-        const { result } = await getHint(props.searchText)
-        hintData.value = result
+        const res = await getHint(props.searchText)
+        // console.log("搜索list内容：",res.data.result);
+        hintData.value = res.data.result;
     }
     /**
      * 监听搜索文本的变化，并获取对应提示数据

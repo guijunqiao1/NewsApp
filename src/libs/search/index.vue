@@ -123,6 +123,8 @@
   // 点击搜索
   const onSearchClick = () => {
     emits(EMIT_SEARCH, inputValue.value)
+    //取消下拉框展示
+    isFocus.value = false
   }
   const isFocus = ref(false)
   const onFoucsHandler = () => {
