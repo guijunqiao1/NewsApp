@@ -6,6 +6,7 @@
         class="relative flex items-center p-0.5 rounded cursor-pointer duration-200 outline-none hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
         <img
+          v-lazy
           src="https://img0.baidu.com/it/u=4192635450,3692849998&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1698944400&t=e6510ab4c0f3e3539f179ad601fd0669"
           class="w-3 h-3 rounded-sm"
         />

@@ -10,11 +10,14 @@ import 'virtual:svg-icons-register'
 import store from './store'
 // 添加全局主题修改监听器，动态修改html的主题类名
 import useTheme from '@/utils/theme'
+//引入自定义指令文件
+import mDirectives from './derectives'
 
 
 
 
-createApp(App).use(router).use(store).use(mLibs).mount('#app');
+
+createApp(App).use(mDirectives).use(router).use(store).use(mLibs).mount('#app');
 
 //设置根元素的字体大小便于使用rem单位
 // 首发配置

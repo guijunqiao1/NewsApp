@@ -11,7 +11,7 @@
       :data="newsList"
       nodeKey="id"
       :column="isMobile ? 2 : 4"
-      :picturePreReading="true"
+      :picturePreReading="false"
       :rowSpacing="10"
     >
       <template v-slot="{ item, width }">
