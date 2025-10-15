@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex"
+    class="relative"
     ref="containerTarget"
     :style="{ height: containerHeight + 'px'}"
   >
@@ -22,7 +22,11 @@
     <div v-else>加载中</div>
   </div>
 </template>
-
+<script>
+  export default {
+    name: 'waterfall'
+  }
+</script>
 
 <script setup>
   import { computed, ref, onMounted, nextTick, watch } from 'vue'
@@ -109,10 +113,10 @@
      * 计算列宽
      */
     const useColumnWidth = () => {
-        // 获取容器宽度
-        useContainerWidth()
-        columnWidth.value =
-            (containerWidth.value - columnSpacingTotal.value) / props.column
+      // 获取容器宽度
+      useContainerWidth()
+      columnWidth.value =
+          (containerWidth.value - columnSpacingTotal.value) / props.column
     }
 
     onMounted(() => {//计算方法的定义放在组件创建前区域，实际调用发生在挂载完毕阶段
