@@ -15,6 +15,12 @@
 <script setup>
     import { getHint } from '@/api/news'
     import { ref, watch } from 'vue'
+    import { watchDebounced } from '@vueuse/core';
+    //针对该api做出解释：
+    //🧩 watchDebounced() 就是 带防抖功能的 watch。
+    // 它在被监听的值变化时，不会立刻执行回调，而是等到一段时间内没有进一步变化后再执行。
+
+    // 相当于在 Vue 的 watch 外层自动包了一层防抖逻辑。
 
     /**
      * 接收搜索数据
@@ -46,7 +52,8 @@
     /**
      * 监听搜索文本的变化，并获取对应提示数据
      */
-    watch(() => props.searchText, getHintData, {
+    watchDebounced(() => props.searchText, getHintData, {
+        debounce:500,
         immediate: true
     })
 
