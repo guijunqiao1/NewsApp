@@ -6,18 +6,18 @@
       :isFinished="isFinished"
       @onLoad="getNewsData"
     >
-      <m-waterfall
-        class="p-1 w-full"
-        :data="newsList"
-        nodeKey="id"
-        :column="isMobileTerminal ? 2 : 4"
-        :picturePreReading="false"
-        :rowSpacing="10"
-      >
-        <template v-slot="{ item, width }">
-          <item-vue :data="item" :width="width"></item-vue>
-        </template>
-      </m-waterfall>
+    <m-waterfall
+      class="p-1 w-full"
+      :data="newsList"
+      nodeKey="id"
+      :column="isMobile ? 2 : 4"
+      :picturePreReading="true"
+      :rowSpacing="10"
+    >
+      <template v-slot="{ item, width }">
+        <item-vue :data="item" :width="width"></item-vue>
+      </template>
+    </m-waterfall>
     </m-infinite>
   </div>
 </template>
@@ -41,18 +41,19 @@
   const newsList = ref([]);
 
   const getNewsData = async () => {
+    console.log("此时需要更新数据");
     if (isFinished.value) return;
     // 让 page/start页数记录 自增
     query.start++;
     let res = await getNewsList(query);//需要注意此处被响应拦截包装了一层对象，使用result属性访问原值
     newsList.value.push(...res.result.list)
+    console.log("newsList:",newsList.value);
     // 判断是否全部加载完成
     if (newsList.value.length === res.result.num) {
       isFinished.value = true
     }
     loading.value = false
   }
-  getNewsData();
 </script>
 
 <style lang="scss" scoped></style>

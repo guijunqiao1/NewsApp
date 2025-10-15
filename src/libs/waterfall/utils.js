@@ -56,5 +56,5 @@ export const getMinHeight = (columnHeightObj) => {
  * 获取多列中的最大高度
  */
 export const getMaxHeight = (columnHeightObj) => {
-  return Math.min(...Object.values(columnHeightObj))
+  return Math.max(...Object.values(columnHeightObj))
 }

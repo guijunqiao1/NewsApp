@@ -12,6 +12,8 @@
         class="m-waterfull-item absolute duration-500"
         :style="{
           width: columnWidth + 'px',
+          left: item._style?.left + 'px',
+          top: item._style?.top + 'px'
         }"
       >
         <!-- 插槽的传值用法 -->
@@ -227,6 +229,7 @@
     watch(
       ()=>props.data,
       (newVal) => {
+        console.log("数据触发了更新");
         // 如果数组每一个都没有._style，则重新构建容器
         const resetColumnHeight = newVal.every((item) => !item._style)
         if (resetColumnHeight) {
@@ -235,6 +238,7 @@
         nextTick(() => {// 将计算操作添加到微队列中--需要注意的是watch回调的内容本身也是微队列，此处还使用一次nextTick包裹内容进行微队列的加入的含义在于：
           //   //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
           if (props.picturePreReading) {
+            console.log("选用了预加载");
             waitImgComplate()
           } else {
             useItemHeight()
@@ -244,7 +248,12 @@
       {
         deep:true,
         //需要注意此处的deep的配置项产生地狱的原因来源于nextTick的
-        // immediate:true 
+        immediate:true
+        //需要注意此处的immediate配置项,
+        //immediate: true 被注释掉了，这意味着：
+        //Watch只会在 props.data 发生变化时触发
+        //不会在组件初始化时触发
+        //如果初始数据在组件挂载前就已经设置好，watch不会执行
       }
     )
 
@@ -258,8 +267,6 @@
       props.data.forEach((item) => {
         item._style = null
       })
-    },{
-      deep:true
     })
 
 </script>
