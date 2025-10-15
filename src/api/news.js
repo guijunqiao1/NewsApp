@@ -1,4 +1,4 @@
-import requset from "@/utils/request";
+import request from "@/utils/request";
 
 /**
  * 获取新闻数据源  
@@ -127,4 +127,17 @@ export const getNewsList = (data) => {
 
   // 模拟数据写法：
   return Promise.resolve(promise_res);//直接返回值也会被封装成这样---与外置的await相对应
+}
+
+
+/**
+ * 获取搜索提示--写了逻辑，但是没有接口，基本没问题的
+ */
+export const getHint = (q) => {
+  return request({
+    url: '/news/hint',
+    params: {
+      q
+    }
+  })
 }
