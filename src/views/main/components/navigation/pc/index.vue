@@ -27,7 +27,7 @@
         ]"
         @click="onItemClick(item)"
       >
-        {{ item }}
+        {{ item.name }}
       </li>
     </ul>
   </div>

@@ -2,7 +2,9 @@
 
 export default{
   // 简单访问--分类总list
-  categorys: (state)=> state.category.categorys,//返回index主仓库程序文件中的category-module中的categorys变量
+  categorys: (state)=> {
+    return state.category.categorys;//返回index主仓库程序文件中的category-module中的categorys变量
+  },
   // 当前主题
   themeType: (state) => state.theme.themeType,
   // 当前category

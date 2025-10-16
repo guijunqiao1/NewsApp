@@ -19,15 +19,15 @@
         ></li>
       <!-- 列表项内容 -->
       <li
-        v-for="(item, index) in $store.getters.categorys"
+        v-for="(item, index) in store.getters.categorys"
         class="shrink-0 px-1.5 py-0.5 duration-200 last:mr-4"
         :ref="setItemRef"
-        :class="{ 'text-zinc-100': index === store.getters.currentCategoryIndex }"
-        @click="onItemClick(index)"
+        :class="{ 'text-zinc-100': item.id === store.getters.currentCategoryIndex }"
+        @click="onItemClick(item)"
       >
       <!-- 上述ref属性的特殊用法，每当 v-for 遍历到一个新的 li 元素时，setItemRef 会被调用，并且该元素会作为参数传递给它。
       注意和绑定元素获取元素的ref的用法进行区别 -->
-        {{ item }}
+        {{ item.name }}
       </li>
     </ul>
     <m-popup v-model="popupVisible" >
@@ -61,7 +61,6 @@
 
   
   const onItemClick = (item) => {
-    console.log('-----------------------',item);
     store.commit('app/changeCurrentCategory', item)
   }
 
@@ -90,43 +89,9 @@
   // 获取scroll滚动的响应式数据
   const { x: ulScrollLeft } = useScroll(ulTarget);//解构赋值的别名命名方式
 
-
-  // 1:
-  // watch(()=>currentCategoryIndex, (val) => {//当选中元素发生变化的时候--第一个参数为newVal
-  //   // 相对于屏幕的位置信息以及大小信息
-  //   const { left, width } = itemRefs[val.value].getBoundingClientRect();//使用HTMLElement元素特有的getBoundingClientRect方法
-
-  //   let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // getComputedStyle获取的所有value都是string类型的object
-  //   ulPadding = parseInt(ulPadding);//强制转化的同时去0
-
-  //   sliderStyle.value = {
-  //     // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding,因为transform属性<0的时候会从视口的位置向左边移动(并不会脱离视口)
-  //     transform: `translateX(${ulScrollLeft.value + left - ulPadding}px)`,//横向移动滑块
-  //     width:`${width}px`//修改滑块体积
-  //   }
-  // },{deep:true})
-  // 2:
-  // watch(()=>currentCategoryIndex, (val) => {
-  //   // 相对于屏幕的位置信息
-  //   // console.log('itemRefs:');
-  //   // console.dir(itemRefs);
-  //   // console.log('val:');
-  //   // console.dir(val.value);
-  //   // console.log('object:');
-  //   // console.dir(itemRefs[val.value]);
-  //   const { left, width } = itemRefs[val.value].getBoundingClientRect()
-  //   let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // 这里因为这种方法获取的是带有9.375px的字符串
-  //   ulPadding = parseInt(ulPadding)
-  //   // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding
-  //   sliderStyle.value.transform = `translateX(${
-  //     ulScrollLeft.value + left - ulPadding
-  //   }px)`
-  //   sliderStyle.value.width = `${width}px`
-  //   console.log("222222");
-
-    watch(()=>store.getters.currentCategoryIndex, (val) => {
+  watch(()=>store.getters.currentCategoryIndex, (val) => {
     // 相对于屏幕的位置信息
-    const { left, width } = itemRefs[val.value].getBoundingClientRect()
+    const { left, width } = itemRefs[val].getBoundingClientRect()
     let ulPadding = getComputedStyle(ulTarget.value, null).paddingLeft // 这里因为这种方法获取的是带有9.375px的字符串
     ulPadding = parseInt(ulPadding)
     // 滑块的位置 = ul 横向滚动的位置 + 当前元素相对于视口的 left - ul 的padding

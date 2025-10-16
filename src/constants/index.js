@@ -4,7 +4,7 @@ export const PC_DEVICE_WIDTH = 1200
 // 导航栏第一项常量--全部 category
 export const ALL_CATEGORY_ITEM = {
   name: '全部',
-  id: 'all'
+  id: 0
 }
 
 // 初始 category 数据
@@ -12,67 +12,67 @@ export const CATEGORY_NOMAR_DATA = [
   ALL_CATEGORY_ITEM,
   {
     name:'头条',
-    id:0
-  },
-  {
-    name:'新闻',
     id:1
   },
   {
-    name:'国内',
+    name:'新闻',
     id:2
   },
   {
-    name:'国际',
+    name:'国内',
     id:3
   },
   {
-    name:'政治',
+    name:'国际',
     id:4
   },
   {
-    name:'财经',
+    name:'政治',
     id:5
   },
   {
-    name:'体育',
+    name:'财经',
     id:6
   },
   {
-    name:'娱乐',
+    name:'体育',
     id:7
   },
   {
-    name:'军事',
+    name:'娱乐',
     id:8
   },
   {
-    name:'教育',
+    name:'军事',
     id:9
   },
   {
-    name:'科技',
+    name:'教育',
     id:10
   },
   {
-    name:'NBA',
+    name:'科技',
     id:11
   },
   {
-    name:'股票',
+    name:'NBA',
     id:12
   },
   {
-    name:'星座',
+    name:'股票',
     id:13
   },
   {
-    name:'女性',
+    name:'星座',
     id:14
   },
   {
-    name:'育儿',
+    name:'女性',
     id:15
+  },
+  {
+    name:'育儿',
+    id:16
   },
 ]
 

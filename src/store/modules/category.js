@@ -8,11 +8,12 @@ export default {
   // 独立作用域--后续声明使用内容需要加上category的命名空间的前缀
   namespaced: true,
   state: () => ({
-    categorys: CATEGORY_NOMAR_DATA
+    categorys: (() => {
+      return CATEGORY_NOMAR_DATA;
+    })()
   }),
   mutations: {//同步方法
     setCategorys(state, categorys) {
-        console.log("cate:",categorys);
       state.categorys = [ALL_CATEGORY_ITEM, ...categorys]
     }
   },

@@ -25,6 +25,7 @@
         ></m-button>
         <!-- 下载 -->
         <m-button
+          @click="onDownload"
           class="absolute bottom-1.5 left-1.5 bg-zinc-100/70"
           type="info"
           size="small"
@@ -55,17 +56,39 @@
 </template>
 
 <script setup>
-  //引入随机颜色方法
+  // 引入图片资源保存包
+  import { saveAs } from 'file-saver'
+  // 引入随机颜色方法
   import { randomRGB } from '@/utils/color.js'
   const props =  defineProps({
-  data: {
-    type: Object,
-    required: true
-  },
-  width:{
-    type: Number,
+    data: {
+      type: Object,
+      required: true
+    },
+    width:{
+      type: Number,
+    }
+  })
+
+
+  /**
+   * 下载按钮点击事件
+   */
+  const onDownload = ()=>{
+    // 传入下载的图片链接
+    fetch(props.data.pic)
+      .then(res => res.blob())
+      .then(blob => {
+        saveAs(blob, props.data.pic)
+      })
+
+    // 补充：
+    // fetch() 获取远程图片资源；
+    // .blob() 把它转换为二进制对象；
+    // saveAs() 触发下载；
+    // 即使图片原本只是用于 <img src="..."> 显示，现在也能被下载。
   }
-})
+
 
 
 
