@@ -13,4 +13,6 @@ export default{
   },
   // 搜索历史数据
   historys: (state) => state.search.historys,
+  // 搜索文本
+  searchText: (state) => state.app.searchText
 }

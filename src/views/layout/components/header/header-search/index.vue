@@ -33,12 +33,17 @@
      * 搜索回调
      */
     const onSearchHandler = (text) => {
-      //触发搜索事件的情况下进行输入框内容的文本填充
-      inputValue.value = text
       // 关闭搜索框
       search.value.isFocus = false
-      //填充历史，store存在去重逻辑
-      store.commit('search/addHistory', text)
+      if (text) {
+        //触发搜索事件的情况下进行输入框内容的文本填充
+        inputValue.value = text
+        // 添加历史数据
+        //填充历史，store存在去重逻辑
+        store.commit('search/addHistory', text)
+        // 更新搜索关键词
+        store.commit('app/changeSearchText', text)
+      }
     }
 </script>
 
