@@ -7,6 +7,8 @@
           <hint-vue v-show="inputValue" :search-text="inputValue" @item-click="onSearchHandler"></hint-vue>
           <!-- 历史记录--输入框为空时显示 -->
           <history-vue v-show="!inputValue" @item-click="onSearchHandler"></history-vue>
+          <!-- 推荐主题-- 输入为空时显示--与历史上下堆叠 -->
+          <theme-vue v-show="!inputValue"></theme-vue>
         </div>
       </template>
     </m-search>
@@ -14,6 +16,7 @@
 </template>
 
 <script setup>
+    import themeVue from './theme.vue';
     import { ref } from "vue";
     import hintVue from "./hint.vue";
     import historyVue from './history.vue'

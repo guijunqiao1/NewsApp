@@ -163,3 +163,65 @@ export const getHint = (q) => {
 
   return Promise.resolve(res_obj);
 }
+
+
+/**
+ * 获取推荐主题
+ */
+export const getThemes = () => {
+  // 返回正常请求结果的写法：
+  // return request({
+  //   url: '/news/themes'
+  // })
+
+  //模拟返回的promise:
+  const res_obj = {
+    "success": true,
+    "code": 200,
+    "data": {
+        "themes": [
+            {
+                "id": "toutiao",
+                "photo": "https://images.pexels.com/photos/4058223/pexels-photo-4058223.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "头条"
+            },
+            {
+                "id": "tiyu",
+                "photo": "https://images.pexels.com/photos/1292862/pexels-photo-1292862.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "体育"
+            },
+            {
+                "id": "nba",
+                "photo": "https://images.pexels.com/photos/1356300/pexels-photo-1356300.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "NBA"
+            },
+            {
+                "id": "junshi",
+                "photo": "https://images.pexels.com/photos/212940/pexels-photo-212940.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "军事"
+            },
+            {
+                "id": "guonei",
+                "photo": "https://images.pexels.com/photos/4711052/pexels-photo-4711052.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "国内"
+            },
+            {
+                "id": "keji",
+                "photo": "https://images.pexels.com/photos/2127969/pexels-photo-2127969.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "科技"
+            },
+            {
+                "id": "yule",
+                "photo": "https://images.pexels.com/photos/9890370/pexels-photo-9890370.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=250&w=360",
+                "title": "娱乐"
+            }
+        ]
+    },
+    "message": "success"
+  }
+
+  return Promise.resolve(res_obj);
+
+
+
+}
