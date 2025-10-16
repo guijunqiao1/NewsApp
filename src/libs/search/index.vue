@@ -94,6 +94,9 @@
    * 注意封装的通用组建的原则：事件仅用于发射
    */
 
+   //获取输入框对象
+   const inputTarget = ref(null)
+
   //获取插槽实例
   const slots = useSlots();
 
@@ -124,7 +127,7 @@
   const onSearchClick = () => {
     emits(EMIT_SEARCH, inputValue.value)
     //取消下拉框展示
-    isFocus.value = false
+    inputTarget.value.blur()
   }
   const isFocus = ref(false)
   const onFoucsHandler = () => {
@@ -143,6 +146,13 @@
   watch(inputValue, (val)=>{
     emits(EMIT_INPUT, val)
   })
+
+  defineExpose({//使得所有获取到当前组件实例对象可以直接访问到isFocus变量--响应式
+    isFocus 
+  })
+  //补充：
+  // ⚠️ defineExpose 不是常规意义上的组件通信机制，
+  // 而是一种父组件主动访问子组件内部实例的方式。
 </script>
 
 <style lang="scss" scoped>
