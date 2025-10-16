@@ -90,6 +90,9 @@
         }
     }
 
+    //信息弹窗动画时间变量
+    const animDuration = '0.5s'
+
     // 控制显示处理
     const isVisable = ref(false)
     /**
@@ -100,8 +103,17 @@
         /**
          * 延迟时间关闭
          */
-        setTimeout(() => {
+        setTimeout(() => {  
             isVisable.value = false
+
+            //此处使用两个定时器的原因在于前者定时器用于触发整体回调逻辑的执行，后者用于与触发动画的起点进行分割，动画完毕后立即销毁组件，需要注意的是destroy是直接卸载不会触发动画，整个都没了，所以需要使用
+            //v-show控制动画的开始
+
+            // 延时销毁
+            setTimeout(
+              props.destroy,
+              parseInt(animDuration.replace('0.', '').replace('s', '')) * 100
+            )
         }, props.duration)
     })
 </script>
@@ -109,7 +121,7 @@
 <style lang="scss" scoped>
 .down-enter-active,
 .down-leave-active {
-  transition: all 0.5s;
+  transition: all v-bind(animDuration);
 }
 
 .down-enter-from,

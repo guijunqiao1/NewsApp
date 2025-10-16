@@ -56,6 +56,7 @@
 </template>
 
 <script setup>
+  import { message } from '@/libs'
   // 引入图片资源保存包
   import { saveAs } from 'file-saver'
   // 引入随机颜色方法
@@ -75,18 +76,29 @@
    * 下载按钮点击事件
    */
   const onDownload = ()=>{
-    // 传入下载的图片链接
-    fetch(props.data.pic)
-      .then(res => res.blob())
-      .then(blob => {
-        saveAs(blob, props.data.pic)
-      })
+      message('success', '图片正在下载中', 5000)
+      // 传入下载的图片链接，相当于 window.open(props.data.photoDownLink)
+
+      // 加个定时器稍微控制调度--也可以去掉，不影响
+      setTimeout(() => {
+        // 传入下载的图片链接
+        fetch(props.data.pic)
+          .then(res => res.blob())
+          .then(blob => {
+            saveAs(blob, props.data.pic)
+          })
+      }, 500)
+
 
     // 补充：
     // fetch() 获取远程图片资源；
     // .blob() 把它转换为二进制对象；
     // saveAs() 触发下载；
     // 即使图片原本只是用于 <img src="..."> 显示，现在也能被下载。
+
+
+    // 若上述的props.data.pic存储的值是下载的url则直接调用:
+    // saveAs(props.data.photoDownLink)即可触发开始下载
   }
 
 
