@@ -86,9 +86,10 @@
     // 关闭动画执行时间
     const duration = '0.5s'
     /**
-     * confirm 关闭，保留动画执行时长
+     * confirm 关闭，保留动画执行时长--二次封装关闭方法
      */
     const close = () => {
+        //触发过渡动画-is-show，防止直接卸载
         isVisable.value = false
         setTimeout(() => {
                 if (props.close) {
