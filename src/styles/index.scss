@@ -14,3 +14,11 @@
 // 回顾webkit解决样式兼容性问题：
 // 可以率先支持新特性；
 // 不会与未来的标准属性冲突。
+
+
+.driver-fix-stacking {
+  position: relative;
+}
+.driver-navigation-btns {
+  line-height: 0;
+}
