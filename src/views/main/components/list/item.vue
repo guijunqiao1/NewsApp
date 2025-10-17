@@ -7,6 +7,7 @@
     :style="{
       backgroundColor: randomRGB()
     }"  
+    @click="onToPinsClick"
     >
       <!-- 图片 -->
       <img
@@ -96,14 +97,13 @@
             saveAs(blob, props.data.pic)
           })
       }, 500)
-
-
     // 补充：
     // fetch() 获取远程图片资源；
     // .blob() 把它转换为二进制对象；
     // saveAs() 触发下载；
     // 即使图片原本只是用于 <img src="..."> 显示，现在也能被下载。
 
+    }
 
     // 若上述的props.data.pic存储的值是下载的url则直接调用:
     // saveAs(props.data.photoDownLink)即可触发开始下载
@@ -116,8 +116,20 @@
     const imgTarget = ref(null);//获取图像dom
     const { enter: onImgFullScreen } = useFullscreen(imgTarget);//调用全屏api同时解构以及别名获取到新对象---后续解释
 
+    const emits = defineEmits(['click'])
 
-  }
+    /**
+     * 进入详情点击事件
+     */
+    const onToPinsClick = () => {//当前组件本身就是item项故无需传参指定target
+      emits('click', {
+        id: props.data.id
+      })
+    }
+
+
+
+
 
 
 

@@ -15,7 +15,7 @@
       :rowSpacing="10"
     >
       <template v-slot="{ item, width }">
-        <item-vue :data="item" :width="width"></item-vue>
+        <item-vue :data="item" :width="width" @click="onToPins(item)" ></item-vue>
       </template>
     </m-waterfall>
     </m-infinite>
@@ -92,6 +92,22 @@
       isFinished.value = true
     }
     loading.value = false
+  }
+
+
+  /**
+   * 进入 pins
+   */
+  const onToPins = (item) => {
+    history.pushState(null, null, `/pins/${item.id}`)
+
+    // api信息补充：
+    // history.pushState(state, title, url)
+    // state：一个与新历史记录条目关联的 状态对象（可以是任意可序列化的 JS 对象）。
+    // title：目前大多数浏览器会忽略该参数，通常传 null 即可。
+    // url：要显示在地址栏的新 URL（必须与当前源同域）。
+    // 功能：
+    // 在不重新加载页面的情况下，将一个新的记录压入浏览器的历史栈，并改变地址栏显示的 URL。
   }
 </script>
 
