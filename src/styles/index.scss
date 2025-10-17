@@ -3,3 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+
+// 为 scrollBar 指定弧度
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+}
+
+// 回顾webkit解决样式兼容性问题：
+// 可以率先支持新特性；
+// 不会与未来的标准属性冲突。

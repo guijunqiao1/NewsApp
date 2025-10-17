@@ -36,11 +36,17 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
         'error-100': '#ED7456',
         'error-200': '#f3471c',
         'error-300': '#ffffff'
+      },
+      variants: {//自定义滚动条样式变量--和拓展配合使用
+        scrollbar: ['dark']
       }
     }
   },
-  plugins: [
-  ]
+  plugins: [require('tailwind-scrollbar')]
+  // 补充解释：
+  // tailwind-scrollbar 是一个 Tailwind CSS 插件，
+  // 用于给网页的滚动条（scrollbar）添加可定制样式
+   
 }
 // 配置文件解释：
 // extend：这个关键字表示 扩展 默认的主题，而不是替换默认的配置。
