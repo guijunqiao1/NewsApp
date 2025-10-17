@@ -1,5 +1,35 @@
 import request from "@/utils/request";
 
+//全局封装id标识生成方法
+function add_id(obj_item){
+    obj_item.result.list.forEach((item,index) => {   
+        if(item.weburl.includes('article')){
+            const step1 = item.weburl.split('_')[1];
+            item['id'] = step1;
+        }else if(item.weburl.includes('doc')){
+            //"weburl": "https:\/\/news.sina.com.cn\/w\/2025-10-13\/doc-inftsvuy3981809.shtml",
+            const step1 = item.weburl.split('doc-')[1];
+            const step2 = step1.split('.')[0];
+            let start = null;
+            for(let i=0;i<step2.length;i++){
+                // 特判
+                if(step2[i]==='0'){
+                    start = i;
+                    break;
+                }
+                if(Number(step2[i])){//发现整形
+                    start = i;
+                    break;
+                }
+            }
+            const step3 = step2.slice(start);
+            item['id'] = step3;
+        }
+    });
+    
+}
+
+
 /**
  * 获取新闻数据源  
  */
@@ -116,6 +146,9 @@ export const getNewsList = (data) => {
         ]
     }
   };
+
+  // 添加obj_id
+  add_id(res_obj);
 
   // 模拟数据写法：
   return Promise.resolve(res_obj);//直接返回值也会被封装成这样---与外置的await相对应

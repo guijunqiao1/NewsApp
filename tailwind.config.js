@@ -37,8 +37,11 @@ module.exports = {//没有设置type:module故使用commonjs正常--没有设置
         'error-200': '#f3471c',
         'error-300': '#ffffff'
       },
-      variants: {//自定义滚动条样式变量--和拓展配合使用
+      variants: {//自定义拓展应用场景，注意和tailwind变量定义的区别--和拓展配合使用
         scrollbar: ['dark']
+        // 启用滚动条样式在暗黑模式下的变体。
+        // 解释：
+        // 允许你在 dark 模式中使用滚动条相关样式
       }
     }
   },

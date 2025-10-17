@@ -141,6 +141,7 @@
      * 进入详情点击事件---为子项目进一步绑定点击的pins展示事件，可能中间的空余部分不会在整个item-vue中被点击到
      */
     const onToPinsClick = () => {//当前组件本身就是item项故无需传参指定target
+      console.log("触发的是item的topins")
       emits('click', {//发射所触发的并不是自定义事件，同时传参为obj模拟item的信息对象
         id: props.data.id,
         location: imgContainerCenter
