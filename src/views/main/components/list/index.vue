@@ -26,7 +26,7 @@
       @enter="enter"
       @leave="leave"
     >
-      <pins-vue v-if="isVisiblePins" :id="currentPins.id" />
+      <pins-vue v-if="isVisiblePins" :now_item="currentPins" />
     </transition>
   </div>
 </template>
@@ -146,7 +146,7 @@
 
   const beforeEnter = (el) => {
     //需要注意的是el绑定的是实际参与过渡的element--实际为transition组件中的整体内容，恰好与gsap需要绑定的target相同
-    console.log(currentPins.value)
+
     //下方gsap动画解释：
     // 瞬间设置样式，不产生动画。作为进入动画的起点。
     gsap.set(el, {
