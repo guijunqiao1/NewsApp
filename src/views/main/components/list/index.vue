@@ -19,10 +19,20 @@
       </template>
     </m-waterfall>
     </m-infinite>
+    <!-- 大图详情处理 -->
+    <transition
+      :css="false"
+      @before-enter="beforeEnter"
+      @enter="enter"
+      @leave="leave"
+    >
+      <pins-vue v-if="isVisiblePins" :id="currentPins.id" />
+    </transition>
   </div>
 </template>
 
 <script setup>
+  import pinsVue from "@/views/pins";
   import { isMobile } from "@/utils/flexible"
   import { getNewsList } from '@/api/news'
   //引入新闻项组件
@@ -94,11 +104,15 @@
     loading.value = false
   }
 
+  // 控制 pins 展示
+  const isVisiblePins = ref(false)
+  // 当前选中的 pins 属性
+  const currentPins = ref({})
 
   /**
    * 进入 pins
    */
-  const onToPins = (item) => {
+  const onToPins = (item) => {//注意和item.vue中该方法不传参的情况进行区分
     history.pushState(null, null, `/pins/${item.id}`)
 
     // api信息补充：
@@ -107,7 +121,10 @@
     // title：目前大多数浏览器会忽略该参数，通常传 null 即可。
     // url：要显示在地址栏的新 URL（必须与当前源同域）。
     // 功能：
-    // 在不重新加载页面的情况下，将一个新的记录压入浏览器的历史栈，并改变地址栏显示的 URL。
+    // 在不重新加载页面的情况下，将一个新的记录压入浏览器的历史栈，并改变地址栏显示的 URL。--本质是为了模拟网页的跳转，实际效果也是一样的
+
+    currentPins.value = item
+    isVisiblePins.value = true
   }
 </script>
 

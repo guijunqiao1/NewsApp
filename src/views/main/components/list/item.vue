@@ -63,8 +63,8 @@
 </template>
 
 <script setup>
-  import { useFullscreen } from '@vueuse/core';
-  import { ref } from 'vue';
+  import { useFullscreen, useElementBounding } from '@vueuse/core'
+  import { ref, computed } from 'vue'
   import { message } from '@/libs'
   // 引入图片资源保存包
   import { saveAs } from 'file-saver'
@@ -119,18 +119,33 @@
     const emits = defineEmits(['click'])
 
     /**
-     * 进入详情点击事件
+     * pins 跳转处理，记录图片的中心点（X|Y位置 + 宽|高的一半）
+     */
+    const {//解构别名赋值
+      x: imgContainerX,
+      y: imgContainerY,
+      width: imgContainerWidth,
+      height: imgContainerHeight
+    } = useElementBounding(imgTarget)
+
+    
+    const imgContainerCenter = computed(() => {
+      return {
+        translateX: parseInt(imgContainerX.value + imgContainerWidth.value / 2),
+        translateY: parseInt(imgContainerY.value + imgContainerHeight.value / 2)
+      }
+    })
+
+
+    /**
+     * 进入详情点击事件---为子项目进一步绑定点击的pins展示事件，可能中间的空余部分不会在整个item-vue中被点击到
      */
     const onToPinsClick = () => {//当前组件本身就是item项故无需传参指定target
-      emits('click', {
-        id: props.data.id
+      emits('click', {//发射所触发的并不是自定义事件，同时传参为obj模拟item的信息对象
+        id: props.data.id,
+        location: imgContainerCenter
       })
     }
-
-
-
-
-
 
 
 
