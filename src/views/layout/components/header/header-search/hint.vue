@@ -15,7 +15,7 @@
 <script setup>
     import { getHint } from '@/api/news'
     import { ref, watch } from 'vue'
-    import { watchDebounced } from '@vueuse/core';
+    import { watchDebounced } from '@/libs/search/utils.js';
     //针对该api做出解释：
     //🧩 watchDebounced() 就是 带防抖功能的 watch。
     // 它在被监听的值变化时，不会立刻执行回调，而是等到一段时间内没有进一步变化后再执行。

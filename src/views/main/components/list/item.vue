@@ -9,7 +9,12 @@
     }"  
     >
       <!-- 图片 -->
-      <img :src="data.pic" class="w-full rounded" />
+      <img
+       ref="imgTarget"
+       v-lazy 
+       :src="data.pic" 
+       class="w-full rounded" 
+       />
       <!-- 遮罩层 -->
       <div
         class="hidden xl:block opacity-0 w-full h-full absolute bg-zinc-900/50 top-0 left-0 rounded duration-300 group-hover:opacity-100"
@@ -39,6 +44,7 @@
           size="small"
           icon="full"
           iconClass="fill-zinc-900 dark:fill-zinc-200"
+          @click="onImgFullScreen"
         ></m-button>
       </div>
     </div>
@@ -56,6 +62,8 @@
 </template>
 
 <script setup>
+  import { useFullscreen } from '@vueuse/core';
+  import { ref } from 'vue';
   import { message } from '@/libs'
   // 引入图片资源保存包
   import { saveAs } from 'file-saver'
@@ -80,7 +88,7 @@
       // 传入下载的图片链接，相当于 window.open(props.data.photoDownLink)
 
       // 加个定时器稍微控制调度--也可以去掉，不影响
-      setTimeout(() => {
+      setTimeout(() => {//此处传入的props.data为数据源项
         // 传入下载的图片链接
         fetch(props.data.pic)
           .then(res => res.blob())
@@ -99,6 +107,16 @@
 
     // 若上述的props.data.pic存储的值是下载的url则直接调用:
     // saveAs(props.data.photoDownLink)即可触发开始下载
+
+
+
+    /**
+     * 生成全屏方法
+     */
+    const imgTarget = ref(null);//获取图像dom
+    const { enter: onImgFullScreen } = useFullscreen(imgTarget);//调用全屏api同时解构以及别名获取到新对象---后续解释
+
+
   }
 
 

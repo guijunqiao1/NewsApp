@@ -1,30 +1,84 @@
-const axios = require('axios');
-const https = require('https');
+// debounce--手写防抖:
+// function debounce(fn,delay){
+//   let timer = null;  
+//   return ()=>{
+//     if(timer){
+//       clearTimeout(timer);
+//     }
+//     timer = setTimeout(()=>{
+//       fn();
+//     },delay)
+//   }
+// }
 
-// API 相关配置
-const host = 'https://jisunews.market.alicloudapi.com';
-const path = '/news/get';
-const appcode = '5caf6b27a0614b56b40155be96f68da9';  // 替换成你自己的 AppCode
-const querys = 'channel=%E5%A4%B4%E6%9D%A1&num=10&start=0';
-const url = `${host}${path}?${querys}`;
+// 最终版本：
+function debounce(fn, delay = 300) {
+  let timer = null;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
 
-// 请求头
-const headers = {
-  'Authorization': `APPCODE ${appcode}`,
-  'Content-Type': 'application/json; charset=UTF-8',
+// 其中this指向问题的解释：
+// this → 取自外层防抖函数的上下文（也就是绑定事件的对象通常和fn同一个环境下，否则修改当前指向的内容）
+//需要注意的是return后不能是箭头而可以是匿名，前者会丢失实际调用到当前函数的环境的方向，而后者和正常函数的功能一致
+
+
+// 手写节流：
+
+function jieliu(fn, delay = 500) {
+  if (delay < 100) throw new Error('delay must be >= 100ms');
+  let last = 0;
+  return function (...args) {
+    const now = Date.now();
+    if (now - last >= delay) {
+      fn.apply(this, args);
+      last = now;
+    }
+  };
+}
+
+
+// 其中this指向问题的解释：
+// this → 取自外层防抖函数的上下文（也就是绑定事件的对象通常和fn同一个环境下，否则修改当前指向的内容）
+//需要注意的是return后不能是箭头而可以是匿名，前者会丢失实际调用到当前函数的环境的方向，而后者和正常函数的功能一致
+
+
+
+
+
+// reduce实现：
+Array.prototype.myReduce = function (callback, initialValue) {
+  if (this == null) throw new TypeError('Cannot read property "reduce" of null or undefined');
+  if (typeof callback !== 'function') throw new TypeError(callback + ' is not a function');
+
+  const arr = this;// 当前数组
+  let accumulator;
+  let startIndex = 0;
+
+  // 判断是否有 initialValue
+  if (arguments.length >= 2) {
+    accumulator = initialValue;
+  } else {
+    // 没有初始值时，取数组第一个有效元素作为初始值
+    while (startIndex < arr.length && !(startIndex in arr)) {
+      startIndex++;
+    }
+    if (startIndex >= arr.length) {
+      throw new TypeError('Reduce of empty array with no initial value');
+    }
+    accumulator = arr[startIndex++];
+  }
+
+  // 遍历数组
+  for (let i = startIndex; i < arr.length; i++) {
+    if (i in arr) {
+      accumulator = callback(accumulator, arr[i], i, arr);
+    }
+  }
+
+  return accumulator;
 };
-
-axios({
-  method: 'get',  // 这里使用 GET 请求，你也可以根据需求选择 POST 请求
-  url: url,
-  headers: headers
-})
-  .then(response => {
-    // 处理返回的内容
-    console.dir(response.data);
-    console.dir(response.data.result.list);
-  })
-  .catch(error => {
-    // 错误处理
-    console.error('Error:', error);
-  });
