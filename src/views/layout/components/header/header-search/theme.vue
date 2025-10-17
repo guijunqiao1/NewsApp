@@ -4,7 +4,7 @@
     <div class="flex h-[140px]" v-if="themeData.list.length">
       <!-- big重点项展示 -->
       <div
-        class="relative rounded w-[260px] cursor-pointer"
+        class="guide-theme relative rounded w-[260px] cursor-pointer"
         :style="{
           backgroundColor: randomRGB()
         }"
