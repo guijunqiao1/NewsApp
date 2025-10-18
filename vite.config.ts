@@ -31,12 +31,5 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  },
-  //单元测试配置
-  test: {
-    environment: 'jsdom',
-    globals: true, // 启用全局 API
-    // 测试文件范围配置
-    include: ['src/unit_test/**/*_{test,spec}.js']
-  },
+  }
 })
