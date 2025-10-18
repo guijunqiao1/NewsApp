@@ -3,6 +3,7 @@
     <!-- 外观插槽部分 -->
     <template #reference>
       <div
+        v-if="false"
         class="guide-my relative flex items-center p-0.5 rounded cursor-pointer duration-200 outline-none hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
         <img
@@ -22,6 +23,10 @@
           name="vip"
           fillClass="fill-zinc-900"
         ></m-svg-icon>
+        
+      </div>
+      <div v-else>
+        <m-button icon="profile" iconColor="#fff" @click="onToLogin"></m-button>
       </div>
     </template>
     <!-- 默认插槽弹窗部分 -->
@@ -43,6 +48,7 @@
 </template>
 
 <script setup>
+  import { useRouter } from 'vue-router'
   // 构建meun 数据源
   const menuArr = [
     {
@@ -64,6 +70,15 @@
       path: ''
     }
   ]
+
+  const router = useRouter()
+
+  /**
+   * 登录点击
+   */
+  const onToLogin = () => {
+    router.push('/login')
+  }
 </script>
 
 <style lang="scss" scoped>

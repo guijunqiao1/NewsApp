@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed left-0 top-0 w-screen h-screen z-20  xl:backdrop-blur-3xl xl:bg-transparent bg-white pb-2 overflow-y-auto xl:p-2"
+    class="fixed left-0 top-0 w-screen h-screen z-20 bg-zinc-200 pb-2 overflow-y-auto xl:p-2"
   >
     <!-- mobile的pins顶部 -->
     <!-- 移动端下展示 navbar -->
@@ -26,7 +26,7 @@
 
 
     <!-- 公共内容区 -->
-    <div class="xl:w-[80%] xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
+    <div v-if="now_item.title" class="xl:w-[80%] xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
       <img
         class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg"
         :src="now_item.pic"
@@ -73,6 +73,7 @@
   import { ref } from 'vue'
   import { isMobile } from '@/utils/flexible.js'
   import { useRouter } from 'vue-router'
+import { data } from 'autoprefixer';
 
   const props = defineProps({
     now_item: {
