@@ -3,12 +3,13 @@
     <!-- 外观插槽部分 -->
     <template #reference>
       <div
-        v-if="false"
+        v-if="store.getters.token"
         class="guide-my relative flex items-center p-0.5 rounded cursor-pointer duration-200 outline-none hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
+        <!-- 头像 -->
         <img
           v-lazy
-          src="https://img0.baidu.com/it/u=4192635450,3692849998&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1698944400&t=e6510ab4c0f3e3539f179ad601fd0669"
+          :src="store.getters.userInfo.avatar"
           class="w-3 h-3 rounded-sm"
         />
         <!-- 下箭头 -->
@@ -19,6 +20,7 @@
         ></m-svg-icon>
         <!-- vip -->
         <m-svg-icon
+          v-if="true"
           class="h-1.5 w-1.5 absolute right-[16px] bottom-0"
           name="vip"
           fillClass="fill-zinc-900"
@@ -48,7 +50,15 @@
 </template>
 
 <script setup>
+  import { useStore } from "vuex";
   import { useRouter } from 'vue-router'
+
+
+  const store = useStore();
+
+  console.log("stroe_token",store);
+  
+  
   // 构建meun 数据源
   const menuArr = [
     {

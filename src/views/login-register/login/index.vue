@@ -93,6 +93,11 @@
   import { ref } from 'vue';
   import { LOGIN_TYPE_USERNAME } from '@/constants'
   import { useStore } from 'vuex'
+  import { useRouter } from 'vue-router'
+
+  //获取到路由对象
+  const router = useRouter();
+
 
   const store = useStore();
 
@@ -131,7 +136,8 @@
     } finally {
       loading.value = false
     }
-    // router.push('/')
+    //登陆后跳转至首页
+    router.push('/')
   }
 
   // 用户输入的用户名和密码
