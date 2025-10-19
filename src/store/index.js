@@ -8,6 +8,7 @@ import category from './modules/category'
 import theme from './modules/theme'
 import app from "./modules/app"
 import search from './modules/search'
+import user from './modules/user'
 
 
 const store = createStore({
@@ -18,7 +19,8 @@ const store = createStore({
     theme,
     //添加分类信息统一管理模块
     app,
-    search
+    search,
+    user
   },
   plugins: [
     // 需要注意的是下方持久化处理的作用流程为：
@@ -26,8 +28,8 @@ const store = createStore({
     createPersistedState({//当项目成功获取到状态库中的初始值的时候立即将空的localstorage进行相应模块内容填充
       // 指定到localStorage 中的key
       key: 'News-app',
-      // 需要保存的模块--注意保存的是state中的指定的下方的模块名--app不用，是会变化的,搜索历史模块需要保存-故添加
-      paths: ['category','theme','search']
+      // 需要保存的模块--注意保存的是state中的指定的下方的模块名--app不用，是会变化的,搜索历史模块需要保存-故添加,user中的token此处手动指定放置在Localstorage中
+      paths: ['category','theme','search','user']
     })
   ]
 })

@@ -91,3 +91,7 @@ export const THEME_DARK = 'dark'
 export const THEME_LIGHT = 'light'
 // 系统主题
 export const THEME_SYSTEM = 'system'
+
+
+// 登录方式
+export const LOGIN_TYPE_USERNAME = 'username';//用户名枚举关键字
