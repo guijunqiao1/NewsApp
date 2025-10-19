@@ -95,6 +95,9 @@
   import { LOGIN_TYPE_USERNAME } from '@/constants'
   import { useStore } from 'vuex'
   import { useRouter } from 'vue-router'
+  //导入快捷message生成组件方法
+  import { message } from '@/libs'
+
 
   //获取到路由对象
   const router = useRouter();
@@ -134,17 +137,19 @@
         ...loginForm.value,
         loginType: LOGIN_TYPE_USERNAME
       })
+      //登陆后跳转至首页
+      router.push('/')
+    } catch (err) {
+      message('warn', err, 6000)
     } finally {
       loading.value = false
     }
-    //登陆后跳转至首页
-    router.push('/')
   }
 
   // 用户输入的用户名和密码
   const loginForm = ref({
-    username: 'LGD_Sunday',
-    password: '123123'
+    username: '',
+    password: ''
   })
 </script>
 

@@ -2,6 +2,10 @@
   <div
     class="relative h-screen bg-white dark:bg-zinc-800 text-center xl:bg-zinc-200"
   >
+     <!-- 头部图标：PC端 -->
+    <div class="hidden pt-5 xl:block"></div>
+    <!-- 头部图标：移动端 -->
+    <div class="h-[111px] xl:hidden"></div>
     <!-- 表单区 -->
     <div
       class="block px-3 mt-4 dark:bg-zinc-800 xl:bg-white xl:w-[388px] xl:dark:bg-zinc-900 xl:m-auto xl:mt-8 xl:py-4 xl:rounded-sm xl:shadow-lg"
@@ -12,7 +16,7 @@
         注册账号
       </h3>
       <!-- 表单 -->
-      <vee-form>
+      <vee-form @submit="onRegister">
         <!-- 用户名 -->
         <vee-field
           class="dark:bg-zinc-800 dark:text-zinc-400 border-b-zinc-400 border-b-[1px] w-full outline-0 pb-1 px-1 text-base focus:border-b-main dark:focus:border-b-zinc-200 xl:dark:bg-zinc-900"
@@ -21,6 +25,7 @@
           placeholder="用户名"
           autocomplete="on"
           :rules="validateUsername"
+          v-model="regForm.username"
         />
         <vee-error-message
           class="text-sm text-red-600 block mt-0.5 text-left"
@@ -34,6 +39,7 @@
           placeholder="密码"
           autocomplete="on"
           :rules="validatePassword"
+          v-model="regForm.password"
         />
         <vee-error-message
           class="text-sm text-red-600 block mt-0.5 text-left"
@@ -47,6 +53,7 @@
           placeholder="确认密码"
           autocomplete="on"
           rules="validateConfirmPassword:@password"
+          v-model="regForm.confirmPassword"
         />
         <!-- 需要注意上述validateConfirmPassword方法会被自动调用传参具体用法细节看组件的官方文档 -->
         <vee-error-message
@@ -59,7 +66,7 @@
             <a
               class="inline-block p-1 text-zinc-400 text-right dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 text-sm duration-400 cursor-pointer"
               target="__black"
-              @click="onToLogin"
+              @click="router.push('/login')"
             >
               去登录
             </a>
@@ -78,6 +85,7 @@
         <m-button
           class="w-full dark:bg-zinc-900 xl:dark:bg-zinc-800"
           :isActiveAnim="false"
+          :loading="loading"
         >
           立即注册
         </m-button>
@@ -87,20 +95,68 @@
 </template>
 
 <script setup>
-    import {
-        Form as VeeForm,
-        Field as VeeField,
-        ErrorMessage as VeeErrorMessage,
-        defineRule
-    } from 'vee-validate'
-    import {
-        validateUsername,
-        validatePassword,
-        validateConfirmPassword
-    } from '../validate'
+  import { useRouter } from "vue-router";
+  import {
+      Form as VeeForm,
+      Field as VeeField,
+      ErrorMessage as VeeErrorMessage,
+      defineRule
+  } from 'vee-validate'
+  import {
+      validateUsername,
+      validatePassword,
+      validateConfirmPassword
+  } from '../validate'
+  import { ref } from 'vue'
+  import { LOGIN_TYPE_USERNAME } from '@/constants'
+  import { useStore } from 'vuex'
+  //导入信息组件快速生成方法
+  import { message } from '@/libs'
 
-    /**
-     * 插入规则
-     */
-    defineRule('validateConfirmPassword', validateConfirmPassword)
+  // 获取路由对象
+  const router = useRouter();
+  // 获状态库对象
+  const store = useStore();
+
+  /**
+   * 插入确认密码规则
+   */
+  defineRule('validateConfirmPassword', validateConfirmPassword)
+
+
+  // 数据源
+  const regForm = ref({
+    username: '',
+    password: '',
+    confirmPassword: ''
+  })
+  
+  // loading
+  const loading = ref(false)
+
+  /**
+   * 触发注册
+   */
+  const onRegister = async () => {
+    loading.value = true
+    try {
+      const payload = {
+        username: regForm.value.username,
+        password: regForm.value.password
+      }
+      // 触发注册
+      await store.dispatch('user/register', payload)
+      // 注册成功，连续触发登录
+      await store.dispatch('user/login', {
+        ...payload,
+        loginType: LOGIN_TYPE_USERNAME
+      })
+      //跳转首页
+      router.push('/')
+    } catch (err) {
+      message('warn', err, 6000)
+    } finally {
+      loading.value = false
+    }
+  }
 </script>

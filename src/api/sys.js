@@ -46,3 +46,21 @@ export const getProfile = () => {
   //   url: '/user/profile'
   // })
 }
+
+/**
+ * 注册
+ */
+export const registerUser = (data) => {
+
+  return Promise.resolve({
+    a:1
+  });
+
+
+  // 实际请求的接口
+  // return request({
+  //   url: '/sys/register',
+  //   method: 'POST',
+  //   data
+  // })
+}
