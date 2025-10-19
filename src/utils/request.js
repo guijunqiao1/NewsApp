@@ -1,5 +1,6 @@
 import axios from "axios";
 import https from "https";
+import store from '@/store';
 
 //前情提要：utils专门用于存放封装的方法(以及接口请求拦截器) 
 
@@ -55,14 +56,27 @@ service.interceptors.request.use(
 /**
  * 响应拦截器，响应数据之后，所有的then之前被调用
  */
-service.interceptors.response.use((response)=>{
-  console.log("response.data",response.data);
-  const {msg, result} = response.data
-  if(msg==='ok'){
-    return result
+service.interceptors.response.use(
+  (response)=>{
+    const {msg, result} = response.data
+    if(msg==='ok'){
+      return result
+    }
+    //统一拦截错误响应
+    return Promise.reject(new Error(msg))
+  },(error) => {
+    // 处理 token--响应超时问题
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.code === 401
+    ) {
+      // TODO: token超时--超时问题登出处理
+      store.dispatch('user/logout')
+    }
+    // TODO: 提示错误消息
+    return Promise.reject(error)
   }
-  //统一拦截错误响应
-  return Promise.reject(new Error(msg))
-})
+)
 
 export default service;
