@@ -47,6 +47,7 @@
         <div class="pt-1 pb-3 leading-[0px] text-right">
           <a
             class="inline-block p-1 text-zinc-400 text-right dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 text-sm duration-400 cursor-pointer"
+            @click="router.push('/register')"
           >
             去注册
           </a>
@@ -146,3 +147,17 @@
     password: '123123'
   })
 </script>
+
+<!-- 
+补充：
+对比点	      router.push('/register')	        history.pushState(...)
+所属	              路由库 API                    	原生浏览器 API
+地址改变	              ✅                              	✅
+页面刷新	              ❌                              	❌
+自动渲染视图     ✅（触发路由匹配）                 	❌（需要自己写逻辑）
+状态管理	      内部维护路由栈 + 守卫             	只能存取 state 对象
+使用场景	      单页应用（SPA）页面跳转           	低层封装 / 自己实现路由 
+总结：
+router.push：是对 history.pushState 的上层封装，专门用于前端路由，能自动触发页面组件切换。
+history.pushState：只是浏览器提供的“改地址”能力，不会自动渲染，需要开发者自己管理 UI
+ -->
