@@ -7,10 +7,7 @@
       fillClass="fill-zinc-900 dark:fill-zinc-200 "
       @click="close"
     ></m-svg-icon>
-
-
     <img class="" ref="imageTarget" :src="blob" />
-
     <m-button
         class="mt-4 w-[80%] xl:w-1/2"
         @click="onConfirmClick" 
@@ -33,6 +30,7 @@
     import { getOSSClient } from '@/utils/sts'
     import { message } from '@/libs'
     import { useStore } from 'vuex'
+    import { putProfile } from '@/api/sys'
 
 
     // 移动端配置对象
@@ -77,18 +75,41 @@
         }
         try {
             // 因为当前凭证只具备 images 文件夹下的访问权限，所以图片需要上传到 images/xxx.xx 。否则你将得到一个 《AccessDeniedError: You have no right to access this object because of bucket acl.》 的错误
+            // 现在已经扩容的权限
             const fileTypeArr = file.type.split('/')
             const fileName = `${store.getters.userInfo.username}/${Date.now()}.${
                 fileTypeArr[fileTypeArr.length - 1]
             }`
             // 文件存放路径，文件
             const res = await ossClient.put(`images/${fileName}`, file)
-            console.log(res);
-            // TODO：图片上传成功
+            console.log("resresres:,",res);
+            // 通知服务器
+            onChangeProfile(res.url);//针对最新上传的头像资源进行本地info更新
         } catch (e) {
             message('error', e)
         }
     }
+
+
+    /**
+     * 上传新头像到服务器
+     */
+    const onChangeProfile = async (avatar) => {
+        // 更新本地数据
+        store.commit('user/setUserInfo', {
+            ...store.getters.userInfo,
+            avatar
+        })
+        // 更新服务器数据
+        await putProfile(store.getters.userInfo)
+        // 通知用户
+        message('success', '用户头像修改成功')
+        // 关闭 loading
+        loading.value = false
+        // 关闭 dialog
+        close()
+    }
+
 
     /**
      * 图片裁剪处理

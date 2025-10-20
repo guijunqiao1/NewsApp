@@ -44,11 +44,29 @@ export const getProfile = () => {
     username:'guijunqiao'
   });
 
+  
+
 
   //实际请求的接口
   // return request({
   //   url: '/user/profile'
   // })
+}
+
+/**
+ * 修改用户信息
+ */
+export const putProfile = (data) => {
+  // 实际请求的接口
+  // return request({
+  //   url: '/user/profile',
+  //   method: 'PUT',
+  //   data
+  // })
+
+  return Promise.resolve({msg:'ok'});
+
+  //该接口理应和服务端的数据库相结合
 }
 
 /**
@@ -69,19 +87,7 @@ export const registerUser = (data) => {
   // })
 }
 
-/**
- * 修改用户信息
- */
-export const putProfile = (data) => {
-  // 实际请求的接口
-  // return request({
-  //   url: '/user/profile',
-  //   method: 'PUT',
-  //   data
-  // })
 
-  return Promise.resolve({msg:'ok'});
-}
 
 
 /**
@@ -89,4 +95,5 @@ export const putProfile = (data) => {
  */
 export const getSts = () => {
   return axios.get("http://localhost:4000/sts");
+  //该接口理应和服务端的数据库相结合
 }
