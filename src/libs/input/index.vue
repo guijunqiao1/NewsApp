@@ -67,7 +67,8 @@
 
     // 输入的字符数
     const currentNumber = computed(() => {
-        return text.value.length
+      const now_len = text.value?text.value.length:0;
+      return now_len;
     })
 </script>
 

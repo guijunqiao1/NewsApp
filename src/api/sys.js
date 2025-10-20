@@ -35,9 +35,12 @@ export const getProfile = () => {
 
   return Promise.resolve({
     vipLevel:true,
-    nickname:22222,
-    avatar:"https://img0.baidu.com/it/u=4192635450,3692849998&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1698944400&t=e6510ab4c0f3e3539f179ad601fd0669"
-
+    nickname:'22222',
+    avatar:"https://img0.baidu.com/it/u=4192635450,3692849998&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1698944400&t=e6510ab4c0f3e3539f179ad601fd0669",
+    title:'33333',
+    compony:'44444',
+    homePage:"55555",
+    introduction:'66666'
   });
 
 

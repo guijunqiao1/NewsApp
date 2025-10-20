@@ -29,7 +29,7 @@ export const confirm = (
 
     // 取消按钮事件--取消后续回调事件在调用confirm的时候添加即可
     const cancelHandler = () => {
-      reject(new Error('取消按钮点击'))
+      console.log("取消登陆");
     }
 
     // 确定按钮事件--确认后续回调事件在调用confirm的时候添加即可
