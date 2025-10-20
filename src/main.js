@@ -12,6 +12,8 @@ import store from './store'
 import useTheme from '@/utils/theme'
 //引入自定义指令文件
 import mDirectives from './derectives'
+//鉴权文件全量引入--本身不是配置对象故文件本身并没有导出也就是全量引入了
+import './permission'
 
 
 
