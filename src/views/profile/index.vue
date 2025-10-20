@@ -206,6 +206,8 @@ export default {
      * 移动端后退处理
      */
     const onNavbarLeftClick = () => {
+        //全局路由状态修改
+        store.commit('app/changeRouterType', 'back')
         router.back()
     }
 
@@ -243,6 +245,15 @@ export default {
       inputFileTarget.value.value = null;//上传文件缓存置为空
     }
   })
+
+
+  /**
+   * 监听 头像资源--此处需要注意的是ref初始化的标准值后续发生修改是和ref无关的
+   */
+  watch(()=>store.getters.userInfo, (val1,val2) => {
+    userInfo.value = val1;
+  },{deep:true})
+
 </script>
 
 

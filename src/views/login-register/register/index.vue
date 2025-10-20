@@ -66,7 +66,7 @@
             <a
               class="inline-block p-1 text-zinc-400 text-right dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 text-sm duration-400 cursor-pointer"
               target="__black"
-              @click="router.push('/login')"
+              @click="onToLogin"
             >
               去登录
             </a>
@@ -158,5 +158,13 @@
     } finally {
       loading.value = false
     }
+  }
+  /**
+   * 进入登录页面
+   */
+  const onToLogin = () => {
+    // 配置跳转方式
+    store.commit('app/changeRouterType', 'push')
+    router.push('/login')//修改全局路由状态
   }
 </script>

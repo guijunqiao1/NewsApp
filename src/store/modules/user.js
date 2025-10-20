@@ -21,9 +21,9 @@ export default {
      * 保存用户信息
      */
     setUserInfo(state, newInfo) {
+      console.log("old_userInfo:",state.userInfo);
+      console.log("now_props_get_newInfo:",newInfo);
       state.userInfo = newInfo
-      // console.log("state_userinfo",state.userInfo);
-      // console.log("newinfo:",newInfo);
     }
   },
   actions: {

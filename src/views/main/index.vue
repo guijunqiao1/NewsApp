@@ -16,7 +16,7 @@
         首页
       </m-trigger-menu-item>
       <m-trigger-menu-item
-        v-if="$store.getters.token"
+        v-if="store.getters.token"
         icon="vip"
         iconClass="fill-zinc-400 dark:fill-zinc-500"
         textClass="text-zinc-400 dark:text-zinc-500"
@@ -30,7 +30,7 @@
         textClass="text-zinc-400 dark:text-zinc-500"
         @click="onMyClick"
       >
-        {{ $store.getters.token ? '我的' : '去登录' }}
+        {{ store.getters.token ? '我的' : '去登录' }}
       </m-trigger-menu-item>
     </m-trigger-menu>
   </div>
@@ -38,9 +38,23 @@
 
 <script setup>
   import navigation from "./components/navigation/index.vue";
+  import listVue from "./components/list/index.vue";
   import { isMobile } from '@/utils/flexible'
-  //应用瀑布流架构
-  import listVue from './components/list/index.vue'
-
+  import { useStore } from 'vuex';
+  import { useRouter } from 'vue-router';
+  const store = useStore()
+  const router = useRouter()
+  /**
+   * 我的按钮点击事件
+   */
+  const onMyClick = () => {
+    // 配置跳转方式
+    store.commit('app/changeRouterType', 'push');//修改此次路由操作为push
+    if (store.getters.token) {//存在登陆标识
+      router.push('/profile')
+    } else {
+      router.push('/login')
+    }
+  }
 
 </script>

@@ -1,3 +1,4 @@
+import { isMobile }from '@/utils/flexible'
 // store计算属性(计算state)文件
 
 export default{
@@ -20,5 +21,13 @@ export default{
   // token
   token: (state) => state.user.token,
   // 获取用户信息
-  userInfo: (state) => state.user.userInfo
+  userInfo: (state) => state.user.userInfo,
+  // 路由跳转方式
+  routerType: (state) => {
+    // 在 PC 端下，永远为 none
+    if (!isMobile.value) {
+      return 'none'
+    }
+    return state.app.routerType
+  }
 }
