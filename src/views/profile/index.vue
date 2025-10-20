@@ -23,6 +23,7 @@
           <!-- 头像部分 -->
           <div
             class="relative w-[80px] h-[80px] group xl:cursor-pointer xl:left-[50%] xl:translate-x-[-50%]"
+            @click="onAvatarClick"
           >
             <img
               v-lazy
@@ -129,6 +130,25 @@
         </m-button>
       </div>
     </div>
+
+    <!-- PC 端 -->
+    <m-dialog v-if="!isMobile" v-model="isDialogVisible">
+      <change-avatar-vue
+        :blob="currentBolb"
+        @close="isDialogVisible = false"
+      ></change-avatar-vue>
+    </m-dialog>
+    <!-- 移动端：在展示时指定高度 -->
+    <m-popup
+      v-else
+      :class="{ 'h-screen': isDialogVisible }"
+      v-model="isDialogVisible"
+    >
+      <change-avatar-vue
+        :blob="currentBolb"
+        @close="isDialogVisible = false"
+      ></change-avatar-vue>
+    </m-popup>
   </div>
 </template>
 
@@ -143,8 +163,10 @@ export default {
     import { confirm,message } from '@/libs'
     import { useRouter } from 'vue-router'
     import { useStore } from 'vuex'
-    import { ref } from 'vue'
+    import { ref,watch } from 'vue'
     import { putProfile } from '@/api/sys'
+    //引入局部组件
+    import changeAvatarVue from './components/change-avatar.vue'
 
     const store = useStore()
     const router = useRouter()
@@ -162,10 +184,23 @@ export default {
         inputFileTarget.value.click()
     }
 
+    const isDialogVisible = ref(false)
+    // 选中的图片
+    const currentBolb = ref('')
+
     /**
      * 头像选择之后的回调
      */
-    const onSelectImgHandler = () => {}
+    const onSelectImgHandler = () => {
+      // 获取选中的文件
+      const imgFile = inputFileTarget.value.files[0]
+      // 生成 blob 对象
+      const blob = URL.createObjectURL(imgFile)
+      // 获取选中的图片
+      currentBolb.value = blob
+      // 展示 Dialog
+      isDialogVisible.value = true
+    }
 
     /**
      * 移动端后退处理
@@ -197,4 +232,27 @@ export default {
     store.commit('user/setUserInfo', userInfo.value)
     loading.value = false
   }
+
+
+  /**
+   * 监听 dialog 关闭
+   */
+  watch(isDialogVisible, (val) => {
+    if (!val) {
+      // 防止 change 不重复触发
+      inputFileTarget.value.value = null;//上传文件缓存置为空
+    }
+  })
 </script>
+
+
+<!-- 
+input原生事件解释补充：
+<input type>	      input 事件	        change 事件
+text	          每输入一个字符触发      	失焦时触发
+password	          同上                	同上
+checkbox	      点击勾选时触发	    点击勾选时也触发（两者几乎等价）
+radio	          切换选中项时触发	      切换选中项时也触发
+file	          选中文件后触发	      选中文件后触发（两者一致）
+range	          滑动时连续触发        	滑动停止时触发  
+ -->
