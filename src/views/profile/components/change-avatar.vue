@@ -30,6 +30,9 @@
     import 'cropperjs/dist/cropper.css'
     import { isMobile } from '@/utils/flexible'
     import { onMounted, ref } from 'vue'
+    import { getOSSClient } from '@/utils/sts'
+    import { message } from '@/libs'
+    import { useStore } from 'vuex'
 
 
     // 移动端配置对象
@@ -52,12 +55,6 @@
         aspectRatio: 1
     }
 
-    /**
-     * 图片裁剪处理
-     */
-    const imageTarget = ref(null)
-    let cropper = null
-
     defineProps({
         blob: {
             type: String,
@@ -66,6 +63,38 @@
     })
 
     const emits = defineEmits([EMITS_CLOSE])
+
+
+    /**
+     * 进行 OSS 上传
+     */
+    let ossClient = null
+    let store = useStore()
+
+    const putObjectToOSS = async (file) => {
+        if (!ossClient) {
+            ossClient = await getOSSClient()
+        }
+        try {
+            // 因为当前凭证只具备 images 文件夹下的访问权限，所以图片需要上传到 images/xxx.xx 。否则你将得到一个 《AccessDeniedError: You have no right to access this object because of bucket acl.》 的错误
+            const fileTypeArr = file.type.split('/')
+            const fileName = `${store.getters.userInfo.username}/${Date.now()}.${
+                fileTypeArr[fileTypeArr.length - 1]
+            }`
+            // 文件存放路径，文件
+            const res = await ossClient.put(`images/${fileName}`, file)
+            console.log(res);
+            // TODO：图片上传成功
+        } catch (e) {
+            message('error', e)
+        }
+    }
+
+    /**
+     * 图片裁剪处理
+     */
+    const imageTarget = ref(null)
+    let cropper = null
 
 
     onMounted(() => {
@@ -90,7 +119,9 @@
         // 获取裁剪后的图片
         cropper.getCroppedCanvas().toBlob((blob) => {//此回调为promise.then微队列
             // 裁剪后的 blob 地址
-            console.log(URL.createObjectURL(blob))
+            // console.log(URL.createObjectURL(blob))
+            // 上传裁剪后的头像
+            putObjectToOSS(blob)
         })
         // console.log("1");
         close();

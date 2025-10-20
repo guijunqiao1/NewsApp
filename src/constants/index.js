@@ -95,3 +95,7 @@ export const THEME_SYSTEM = 'system'
 
 // 登录方式
 export const LOGIN_TYPE_USERNAME = 'username';//用户名枚举关键字
+
+// STS 上传数据
+export const REGION = 'oss-cn-beijing'
+export const BUCKET = 'guijunqiao'

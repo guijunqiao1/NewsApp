@@ -7,6 +7,10 @@ const PORT = 4000;
 app.use(cors());
 app.use(express.json());
 
+// sts 路由
+const stsRouter = require('./sts');
+app.use('/sts', stsRouter);//路由统一前缀配置同时注册
+
 // 存储验证请求的时间戳
 const verificationAttempts = new Map();
 

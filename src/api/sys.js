@@ -40,7 +40,8 @@ export const getProfile = () => {
     title:'33333',
     compony:'44444',
     homePage:"55555",
-    introduction:'66666'
+    introduction:'66666',
+    username:'guijunqiao'
   });
 
 
@@ -80,4 +81,12 @@ export const putProfile = (data) => {
   // })
 
   return Promise.resolve({msg:'ok'});
+}
+
+
+/**
+ * 获取 OSS 上传凭证
+ */
+export const getSts = () => {
+  return axios.get("http://localhost:4000/sts");
 }
