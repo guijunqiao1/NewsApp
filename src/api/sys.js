@@ -67,3 +67,17 @@ export const registerUser = (data) => {
   //   data
   // })
 }
+
+/**
+ * 修改用户信息
+ */
+export const putProfile = (data) => {
+  // 实际请求的接口
+  // return request({
+  //   url: '/user/profile',
+  //   method: 'PUT',
+  //   data
+  // })
+
+  return Promise.resolve({msg:'ok'});
+}

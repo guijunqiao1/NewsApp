@@ -26,7 +26,7 @@
           >
             <img
               v-lazy
-              :src="store.getters.userInfo.avatar"
+              :src="userInfo.avatar"
               alt=""
               class="rounded-[50%] w-full h-full xl:inline-block"
             />
@@ -62,7 +62,7 @@
             >用户名</span
           >
           <m-input
-            v-model="store.getters.userInfo.nickname"
+            v-model="userInfo.nickname"
             class="w-full"
             type="text"
             max="20"
@@ -74,7 +74,7 @@
             >职位</span
           >
           <m-input
-            v-model="store.getters.userInfo.title"
+            v-model="userInfo.title"
             class="w-full"
             type="text"
           ></m-input>
@@ -85,7 +85,7 @@
             >公司</span
           >
           <m-input
-            v-model="store.getters.userInfo.company"
+            v-model="userInfo.company"
             class="w-full"
             type="text"
           ></m-input>
@@ -96,7 +96,7 @@
             >个人主页</span
           >
           <m-input
-            v-model="store.getters.userInfo.homePage"
+            v-model="userInfo.homePage"
             class="w-full"
             type="text"
           ></m-input>
@@ -107,7 +107,7 @@
             >个人介绍</span
           >
           <m-input
-            v-model="store.getters.userInfo.introduction"
+            v-model="userInfo.introduction"
             class="w-full"
             type="textarea"
             max="50"
@@ -116,6 +116,7 @@
         <!-- 保存修改 -->
         <m-button
           class="w-full mt-2 mb-4 dark:text-zinc-300 dark:bg-zinc-800 xl:w-[160px] xl:ml-[50%] xl:translate-x-[-50%]"
+          @click="onChangeProfile"
           >保存修改</m-button
         >
         <!-- 移动端退出登录 -->
@@ -139,14 +140,19 @@ export default {
 
 <script setup>
     import { isMobile } from '@/utils/flexible'
-    import { confirm } from '@/libs'
+    import { confirm,message } from '@/libs'
     import { useRouter } from 'vue-router'
     import { useStore } from 'vuex'
     import { ref } from 'vue'
+    import { putProfile } from '@/api/sys'
 
     const store = useStore()
     const router = useRouter()
 
+    //双向绑定状态库中的userInfo对象
+    const userInfo = ref(store.getters.userInfo)
+
+    
     // 隐藏域
     const inputFileTarget = ref(null)
     /**
@@ -178,4 +184,17 @@ export default {
             router.push('/');
         })
     }
+
+  /**
+   * 修改个人信息
+   */
+  const loading = ref(false)
+  const onChangeProfile = async () => {
+    loading.value = true
+    await putProfile(userInfo.value)
+    message('success', '用户信息修改成功')
+    // 更新 vuex
+    store.commit('user/setUserInfo', userInfo.value)
+    loading.value = false
+  }
 </script>
