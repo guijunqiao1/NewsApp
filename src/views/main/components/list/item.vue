@@ -108,7 +108,7 @@
     // 若上述的props.data.pic存储的值是下载的url则直接调用:
     // saveAs(props.data.photoDownLink)即可触发开始下载
 
-
+    
 
     /**
      * 生成全屏方法
@@ -117,22 +117,28 @@
     const { enter: onImgFullScreen } = useFullscreen(imgTarget);//调用全屏api同时解构以及别名获取到新对象---后续解释
 
     const emits = defineEmits(['click'])
-
-    /**
-     * pins 跳转处理，记录图片的中心点（X|Y位置 + 宽|高的一半）
-     */
-    const {//解构别名赋值
-      x: imgContainerX,
-      y: imgContainerY,
-      width: imgContainerWidth,
-      height: imgContainerHeight
-    } = useElementBounding(imgTarget)
-
     
     const imgContainerCenter = computed(() => {
+      // useElementBounding 仅在 window的 scroll 方法时被触发，所以移动端的 useElementBounding 不再具备响应式--此处改用getBoundingClientRect方法替代功能
+      // 补充：
+      // 对比维度	    getBoundingClientRect()（原生）       	useElementBounding()（VueUse）
+      // 类型         	原生 DOM API                        	VueUse 组合式函数
+      // 响应性	        ❌ 不响应变化（静态结果）	              ✅ 响应式更新（自动监听）
+      // 返回值类型	      普通对象 (DOMRect)	                  一组 ref 响应式变量
+      // 是否自动更新     	❌ 需要手动调用更新	            ✅ 会自动在窗口变化 / 元素变化时更新
+      // 内部依赖机制	      浏览器布局计算	                ResizeObserver、window 事件等
+      // 使用场景	      仅需要一次性测量（如拖拽起始点）	    需要实时追踪元素位置或大小变化（如浮层定位）
+      // 性能开销	      小（但频繁调用会触发重排）              	稍高（持续监听变化）
+      // 是否依赖 Vue	    ❌ 与框架无关	                  ✅ 仅能在 Vue 组合式 API 中使用
+      const {
+        x: imgContainerX,
+        y: imgContainerY,
+        width: imgContainerWidth,
+        height: imgContainerHeight
+      } = imgTarget.value.getBoundingClientRect()
       return {
-        translateX: parseInt(imgContainerX.value + imgContainerWidth.value / 2),
-        translateY: parseInt(imgContainerY.value + imgContainerHeight.value / 2)
+        translateX: parseInt(imgContainerX + imgContainerWidth / 2),
+        translateY: parseInt(imgContainerY + imgContainerHeight / 2)
       }
     })
 

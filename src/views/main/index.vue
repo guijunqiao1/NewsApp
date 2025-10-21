@@ -1,10 +1,14 @@
 <template>
   <!-- 利用tailwind插件添加上该元素身上的滚动条设计 -->
-  <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500 xl:scrollbar-thin xl:scrollbar-thumb-zinc-200 xl:dark:scrollbar-thumb-zinc-900 scrollbar-track-transparent">
+  <div
+    class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500 xl:scrollbar-thin xl:scrollbar-thumb-zinc-200 xl:dark:scrollbar-thumb-zinc-900 scrollbar-track-transparent"
+    ref="containerTarget"
+  >
     <navigation></navigation>
     <div class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500">
       <list-vue></list-vue>
     </div>
+    <!-- 移动端的 -->
     <m-trigger-menu
       v-if="isMobile"
       class="fixed bottom-6 m-auto left-0 right-0 w-[220px]"
@@ -48,8 +52,14 @@
   import { isMobile } from '@/utils/flexible'
   import { useStore } from 'vuex';
   import { useRouter } from 'vue-router';
+  import { ref, onActivated } from 'vue'
+  import { useScroll } from '@vueuse/core'
+
+
   const store = useStore()
   const router = useRouter()
+
+
   /**
    * 我的按钮点击事件
    */
@@ -62,5 +72,22 @@
       router.push('/login')
     }
   }
+
+
+
+  /**
+   * 记录页面滚动位置
+   */
+  const containerTarget = ref(null)
+  const { y: containerTargetScrollY } = useScroll(containerTarget);//需要注意此处获取的是整个框架的scroll响应值
+  // 被缓存的组件再次可见，会回调 onActivated 方法
+  // 补充解释：onActivated 钩子是 Vue 3 中 组合式 API 提供的一个生命周期钩子，主要用于组件被 <keep-alive> 激活时触发。
+  onActivated(() => {//以前缓存过即进行下方操作
+    if (!containerTarget.value) {//还没渲染框架就算了
+      return
+    }
+    // 跳转
+    containerTarget.value.scrollTop = containerTargetScrollY.value;//此处跳转发生在路由缓存被激活回来的时候
+  })
 
 </script>
