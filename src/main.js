@@ -15,10 +15,6 @@ import mDirectives from './derectives'
 //鉴权文件全量引入--本身不是配置对象故文件本身并没有导出也就是全量引入了
 import './permission'
 
-
-
-
-
 createApp(App).use(mDirectives).use(router).use(store).use(mLibs).mount('#app');
 
 //设置根元素的字体大小便于使用rem单位

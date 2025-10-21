@@ -36,6 +36,12 @@
   </div>
 </template>
 
+<script>
+  export default {
+    name: 'home'
+  }
+</script>
+
 <script setup>
   import navigation from "./components/navigation/index.vue";
   import listVue from "./components/list/index.vue";
@@ -48,8 +54,8 @@
    * 我的按钮点击事件
    */
   const onMyClick = () => {
-    // 配置跳转方式
     store.commit('app/changeRouterType', 'push');//修改此次路由操作为push
+    // 配置跳转方式
     if (store.getters.token) {//存在登陆标识
       router.push('/profile')
     } else {
