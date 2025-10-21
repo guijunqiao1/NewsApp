@@ -90,4 +90,15 @@
     containerTarget.value.scrollTop = containerTargetScrollY.value;//此处跳转发生在路由缓存被激活回来的时候
   })
 
+
+
+  /**
+   * VIP 按钮点击事件
+   */
+  const onVipClick = () => {
+    // 配置跳转方式
+    store.commit('app/changeRouterType', 'push')
+    router.push('/member')
+  }
+
 </script>
