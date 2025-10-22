@@ -5,7 +5,6 @@
     <!-- mobile的pins顶部 -->
     <!-- 移动端下展示 navbar -->
     <m-navbar v-if="isMobile" @clickLeft="onPop" @clickRight="onPop" sticky>
-      {{ now_item.title }}
       <template #right>
         <m-svg-icon
           name="share"
@@ -32,7 +31,7 @@
         :src="now_item.pic"
       />
       <div
-        class="xl:w-2/5 xl:h-full xl:bg-white xl:dark:bg-zinc-900 xl:rounded-tr-lg xl:rounded-br-lg xl:p-3"
+        class="xl:w-2/5 xl:h-full xl:bg-white xl:dark:bg-zinc-900 xl:rounded-tr-lg xl:rounded-br-lg xl:p-3 overflow-y-auto"
       >
         <!-- pc端独有内容 -->
         <div v-if="!isMobile" class="flex justify-between mb-2">
@@ -49,12 +48,17 @@
             iconClass="fill-zinc-900 dark:fill-zinc-200"
           />
         </div>
-        <!-- 标题 -->
-        <p
-          class="text-base text-zinc-900 dark:text-zinc-200 ml-1 font-bold xl:text-xl xl:mb-5"
-        >
-          {{ now_item.title }}
-        </p>
+        <!-- 原文跳转  -->
+        <div class="">
+          <m-button
+            class="w-full dark:bg-zinc-900 xl:dark:bg-zinc-800"
+          >
+            <a :href="now_item.weburl" class="w-full" target="_blank" >点击此处进入原文</a>
+          </m-button>
+        </div>
+        <!-- 具体文本 -->
+         <div class="content">  
+         </div>
         <!-- 类型/来源 -->
         <div class="flex items-center mt-1 px-1">
           <span class="text-base text-zinc-900 dark:text-zinc-200 ml-1">{{
@@ -70,10 +74,9 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref,onMounted } from 'vue'
   import { isMobile } from '@/utils/flexible.js'
   import { useRouter } from 'vue-router'
-import { data } from 'autoprefixer';
 
   const props = defineProps({
     now_item: {
@@ -91,5 +94,12 @@ import { data } from 'autoprefixer';
   const onPop = () => {
     router.back()
   }
+
+  // 挂载完毕填充实际元素
+  onMounted(()=>{
+    const content = document.querySelector('.content');
+    content.innerHTML = props.now_item.content;
+  })
+
 
 </script>

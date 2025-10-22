@@ -5,6 +5,7 @@
       :routerType="store.getters.routerType"
     ></m-transition-router-view>
   </div>
+
 </template>
 
 <script setup>
