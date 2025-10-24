@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="scroll_all"
     class="fixed left-0 top-0 w-screen h-screen z-20 bg-zinc-200 pb-2 overflow-y-auto xl:p-2"
   >
     <!-- mobile的pins顶部 -->
@@ -23,9 +24,10 @@
       @click="onPop"
     ></m-svg-icon>
 
-
+    <div v-if="!isMobile" style="text-align: center;">《{{ now_item.title }}》</div>
     <!-- 公共内容区 -->
     <div v-if="now_item.title" class="xl:w-[80%] xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
+      <text v-if="isMobile">《{{ now_item.title }}》</text>
       <img
         class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg"
         :src="now_item.pic"
@@ -57,8 +59,8 @@
           </m-button>
         </div>
         <!-- 具体文本 -->
-         <div class="content">  
-         </div>
+        <div ref="contentRef" class="content">  
+        </div>
         <!-- 类型/来源 -->
         <div class="flex items-center mt-1 px-1">
           <span class="text-base text-zinc-900 dark:text-zinc-200 ml-1">{{
@@ -71,12 +73,14 @@
       </div>
     </div>
   </div>
+
 </template>
 
 <script setup>
-  import { ref,onMounted } from 'vue'
+  import { ref,onMounted, nextTick, watch, onUnmounted } from 'vue'
   import { isMobile } from '@/utils/flexible.js'
   import { useRouter } from 'vue-router'
+  import { scrollBack } from "@/libs"
 
   const props = defineProps({
     now_item: {
@@ -95,10 +99,80 @@
     router.back()
   }
 
+  // 使用 ref 直接引用 DOM 元素
+  const contentRef = ref(null)
+
+  // 填充内容的函数
+  const fillContent = () => {
+    nextTick(() => {
+      console.log("contentRef:",contentRef.value);
+      console.log("props.now_item:",props.now_item);
+      
+      // 如果 ref 引用失败，尝试使用 querySelector 作为备选方案
+      let contentElement = contentRef.value;
+      if (!contentElement) {
+        contentElement = document.querySelector('.content');
+        console.log("备选方案 contentElement:",contentElement);
+      }
+      
+      if (contentElement && props.now_item.content) {
+        contentElement.innerHTML = props.now_item.content;
+        console.log("成功填充内容");
+      } else {
+        console.log("填充失败 - contentElement:", !!contentElement, "content:", !!props.now_item.content);
+      }
+    });
+  }
+
   // 挂载完毕填充实际元素
-  onMounted(()=>{
-    const content = document.querySelector('.content');
-    content.innerHTML = props.now_item.content;
+  onMounted(() => {
+    fillContent();
+  })
+
+  // 监听 props.now_item 变化，确保内容能及时更新
+  watch(() => props.now_item, () => {
+    fillContent();
+  }, { deep: true })
+
+  const scroll_all = ref();
+  const isScrollBackVisible = ref(false);
+
+  function backTop(){
+    // 滚动到顶部
+    if (scroll_all.value) {
+      scroll_all.value.scrollTop = 0;
+    }
+  }
+
+  // 监听滚动事件
+  const handleScroll = () => {
+    if (!scroll_all.value) return;
+    
+    const scrollTop = scroll_all.value.scrollTop;
+    const scrollHeight = scroll_all.value.scrollHeight;
+    const clientHeight = scroll_all.value.clientHeight;
+    
+    // 当滚动超过一半时显示回到顶部按钮
+    const shouldShow = scrollTop > (scrollHeight - clientHeight) / 2;
+    
+    if (shouldShow !== isScrollBackVisible.value) {
+      isScrollBackVisible.value = shouldShow;
+      scrollBack(shouldShow, scroll_all.value);
+    }
+  }
+
+  // 在组件挂载后添加滚动监听
+  onMounted(() => {
+    if (scroll_all.value) {
+      scroll_all.value.addEventListener('scroll', handleScroll);
+    }
+  })
+
+  // 组件卸载时清理事件监听器
+  onUnmounted(() => {
+    if (scroll_all.value) {
+      scroll_all.value.removeEventListener('scroll', handleScroll);
+    }
   })
 
 

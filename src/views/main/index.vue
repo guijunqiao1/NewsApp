@@ -1,7 +1,7 @@
 <template>
   <!-- 利用tailwind插件添加上该元素身上的滚动条设计 -->
   <div
-    class="h-full overflow-auto bg-white dark:bg-zinc-800 duration-500 xl:scrollbar-thin xl:scrollbar-thumb-zinc-200 xl:dark:scrollbar-thumb-zinc-900 scrollbar-track-transparent"
+    class="h-full bg-white dark:bg-zinc-800 duration-500 xl:scrollbar-thin xl:scrollbar-thumb-zinc-200 xl:dark:scrollbar-thumb-zinc-900 scrollbar-track-transparent"
     ref="containerTarget"
   >
     <navigation></navigation>
