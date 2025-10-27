@@ -22,3 +22,20 @@
 .driver-navigation-btns {
   line-height: 0;
 }
+
+
+// 补充：
+// 1. ::-webkit 的基本概念
+// ::-webkit 并不是一个单独的 CSS 选择器，而是一个Webkit内核浏览器（比如 Chrome、Safari）特有的前缀，允许开发者针对这些浏览器的特定控件进行样式自定义。
+
+// 它通常用于一些原生 UI 组件的修饰，如：滚动条、输入框、按钮等。需要注意的是，这些样式仅在基于 Webkit 引擎的浏览器中有效，在其他浏览器（如 Firefox）中可能无法生效。
+
+// 2. 常见的 ::-webkit 伪元素
+// 2.1 ::-webkit-scrollbar：自定义滚动条
+// 你可以使用 ::-webkit-scrollbar 来控制浏览器滚动条的外观，支持的子伪元素有：
+
+// ::-webkit-scrollbar：滚动条的整体
+// ::-webkit-scrollbar-thumb：滚动条的滑块
+// ::-webkit-scrollbar-track：滚动条的轨道
+// ::-webkit-scrollbar-button：滚动条的按钮
+// ::-webkit-scrollbar-corner：两个滚动条交界的角

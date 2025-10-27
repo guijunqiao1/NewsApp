@@ -13,7 +13,13 @@ export default defineConfig({
       iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
       // 指定symbolId格式
       symbolId: 'icon-[name]'
-    })
+    }),
+
+    // loader1/loader2/loader3/loader4 这种 loader 逻辑
+    // 可以改写为 Vite 插件形式
+
+
+
   ],
   // 软链接
   resolve: {
