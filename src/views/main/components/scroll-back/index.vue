@@ -1,12 +1,11 @@
 <template>
     <transition name='scroll-back'>
         <m-button
-        v-if="isShow" 
-        class='min-w-[420px] fixed top-[20px] left-[50%] translate-x-[-50%] z-100 flex items-center px-3 py-1.5 rounded border cursor-pointer'
+        v-show="isShow" 
+        class='h-[42px] min-w-[32px] fixed top-[50%] left-[90%] translate-x-[-50%] z-[100] flex items-center px-3 py-1.5 rounded border cursor-pointer'
         @click="backTop"
         >
             <m-svg-icon 
-            class=""
             name="back-top"
             ></m-svg-icon>
         </m-button>
@@ -20,8 +19,6 @@
 </script>
 
 <script setup>
-    import { ref,watch,onMounted } from 'vue';
-    const com_show = ref(false);
 
     defineProps({
         isShow:{

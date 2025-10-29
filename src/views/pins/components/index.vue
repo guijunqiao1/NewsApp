@@ -73,14 +73,14 @@
       </div>
     </div>
   </div>
-
+  <scroll-back :isShow="isScrollBackVisible" @backTop="backTop"></scroll-back>
 </template>
 
 <script setup>
   import { ref,onMounted, nextTick, watch, onUnmounted } from 'vue'
   import { isMobile } from '@/utils/flexible.js'
   import { useRouter } from 'vue-router'
-  import { scrollBack } from "@/libs"
+  import scrollBack from "@/views/main/components/scroll-back/index.vue";
 
   const props = defineProps({
     now_item: {
@@ -154,11 +154,8 @@
     
     // 当滚动超过一半时显示回到顶部按钮
     const shouldShow = scrollTop > (scrollHeight - clientHeight) / 2;
-    
-    if (shouldShow !== isScrollBackVisible.value) {
-      isScrollBackVisible.value = shouldShow;
-      scrollBack(shouldShow, scroll_all.value);
-    }
+  
+    isScrollBackVisible.value = shouldShow;
   }
 
   // 在组件挂载后添加滚动监听

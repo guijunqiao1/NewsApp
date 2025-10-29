@@ -99,7 +99,6 @@
             containerTarget.value.clientWidth -
             containerLeft.value -
             parseFloat(paddingRight)
-
         // 回顾
         // 属性	            作用	    包含内容区域	包含内边距	包含边框	包含滚动条
         // offsetWidth	元素的总宽度	    是	        是	    是	        是

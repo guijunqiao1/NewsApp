@@ -2,7 +2,6 @@ import { defineAsyncComponent } from 'vue'
 //库全局导出确认方法，方便访问
 export { confirm } from './confirm'
 export { message } from './message'
-export { scrollBack } from './scroll-back'
 
 export default{
   // 自动化注册组件
