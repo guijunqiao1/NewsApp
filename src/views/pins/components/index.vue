@@ -28,10 +28,16 @@
     <!-- 公共内容区 -->
     <div v-if="now_item.title" class="xl:w-[80%] xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
       <text v-if="isMobile">《{{ now_item.title }}》</text>
-      <img
-        class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg"
-        :src="now_item.pic"
-      />
+      <div 
+      class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg bg-main"
+      >
+        <img
+          ref="img_ele"
+          :class="style[img_type]"
+          :src="now_item.pic"
+        />
+      </div>
+      
       <div
         class="xl:w-2/5 xl:h-full xl:bg-white xl:dark:bg-zinc-900 xl:rounded-tr-lg xl:rounded-br-lg xl:p-3 overflow-y-auto"
       >
@@ -73,8 +79,15 @@
       </div>
     </div>
   </div>
-  <scroll-back :isShow="isScrollBackVisible" @backTop="backTop"></scroll-back>
+  <scroll-back :isShow="isScrollBackVisible&&isMobile" @backTop="backTop"></scroll-back>
 </template>
+
+<script>
+  const style = { 
+    shu:"h-[100%] mb-2 mx-auto",
+    heng:"w-screen mb-2 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg"
+  }
+</script>
 
 <script setup>
   import { ref,onMounted, nextTick, watch, onUnmounted } from 'vue'
@@ -86,10 +99,17 @@
     now_item: {
         type: Object,
         required: true
+    },
+    img_type: {
+      type:String,
+      required:true,
     }
   })
 
-  console.log("成功传入到pins的obj：",props.now_item);
+  watch(() => props.img_type, () => {
+    console.log("成功传入到pins的obj：",props.now_item);
+  }, { deep: true })
+
 
   /** 
    * 关闭按钮处理事件

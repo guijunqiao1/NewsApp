@@ -15,7 +15,7 @@
       :rowSpacing="10"
     >
       <template v-slot="{ item, width }">
-        <item-vue :data="item" :width="width" @click="onToPins(item)" ></item-vue>
+        <item-vue :data="item" :width="width" @change_img_type="change_img_type" @click="onToPins(item)" ></item-vue>
       </template>
     </m-waterfall>
     </m-infinite>
@@ -26,7 +26,7 @@
       @enter="enter"
       @leave="leave"
     >
-      <pins-vue v-if="isVisiblePins" :now_item="currentPins" />
+      <pins-vue v-if="isVisiblePins" :now_item="currentPins" :img_type="img_type" />
     </transition>
   </div>
 </template>
@@ -54,6 +54,8 @@
   const loading = ref(false)
   // 数据是否全部加载完成
   const isFinished = ref(false)
+
+
 
   let query = { start: 0, nums: 10, channel:'头条' };
 
@@ -114,10 +116,16 @@
   /**
    * 进入 pins
    */
+  const img_type = ref('heng');
+  function change_img_type(item){
+    img_type.value = item.img_type;
+    console.log('进入pins的img_type:',img_type.value);
+  }
   const onToPins = (item) => {//注意和item.vue中该方法不传参的情况进行区分
-    console.log("触发的是list的topins")
     console.log('itemitem:',item);
     history.pushState(null, null, `/pins/${item.id}`)
+    
+
 
     // api信息补充：
     // history.pushState(state, title, url)

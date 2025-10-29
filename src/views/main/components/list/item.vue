@@ -116,7 +116,7 @@
     const imgTarget = ref(null);//获取图像dom
     const { enter: onImgFullScreen } = useFullscreen(imgTarget);//调用全屏api同时解构以及别名获取到新对象---后续解释
 
-    const emits = defineEmits(['click'])
+    const emits = defineEmits(['change_img_type'])
     
     const imgContainerCenter = computed(() => {
       // useElementBounding 仅在 window的 scroll 方法时被触发，所以移动端的 useElementBounding 不再具备响应式--此处改用getBoundingClientRect方法替代功能
@@ -148,12 +148,14 @@
      */
     const onToPinsClick = () => {//当前组件本身就是item项故无需传参指定target
       console.log("触发的是item的topins")
-      emits('click', {//发射所触发的并不是自定义事件，同时传参为obj模拟item的信息对象
+      //计算img盒子类型
+      const { height,width } = window.getComputedStyle(imgTarget.value);
+      const img_type = height>=width?'shu':'heng';
+      emits('change_img_type', {//发射所触发的并不是自定义事件，同时传参为obj模拟item的信息对象
         id: props.data.id,
-        location: imgContainerCenter
+        location: imgContainerCenter,
+        img_type
       })
     }
-
-
 
 </script>
