@@ -2,6 +2,9 @@ import { loginUser,getProfile,registerUser } from '@/api/sys'
 import md5 from 'md5'
 import { message } from '@/libs';//调用库全局暴露的message组件生产方法用于快速生成并调用message方法使得指定信息生成
 
+import {LOGIN_TYPE_OAUTH_NO_REGISTER_CODE} from '@/constants'
+
+
 export default {
   namespaced: true,
   state: () => ({
@@ -37,6 +40,10 @@ export default {
         ...payload,
         password: password ? md5(password) : ''//md5加密post请求体
       })
+      // QQ 扫码登录，用户未注册
+      if (data.code === LOGIN_TYPE_OAUTH_NO_REGISTER_CODE) {
+        return data.code
+      }
       // console.log(data);
       context.commit('setToken', data.token)
             context.dispatch('profile')

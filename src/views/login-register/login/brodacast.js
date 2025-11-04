@@ -1,7 +1,7 @@
 // 频道名
 const LOGIN_SUCCESS_CHANNEL = 'LOGIN_SUCCESS_CHANNEL'
 
-// 官方声明 safari 支持 BroadcastChannel ，但是实测 15.3 的版本并不支持 😠，所以我们需要对其进行判定使用，在不支持 BroadcastChannel 的浏览器中，使用 localstorage
+// 官方声明 safari 支持 BroadcastChannel ，但是实测 15.3 的版本并不支持，所以我们需要对其进行判定使用，在不支持 BroadcastChannel 的浏览器中，使用 localstorage
 let broadcastChannel = null
 if (window.BroadcastChannel) {
   broadcastChannel = new BroadcastChannel(LOGIN_SUCCESS_CHANNEL)

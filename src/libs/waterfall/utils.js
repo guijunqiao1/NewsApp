@@ -40,7 +40,7 @@ export const onComplateImgs = (imgs) => {
  */
 export const getMinHeightIndex = (columnHeightObj) => {
   const minHeight = getMinHeight(columnHeightObj)
-  return Object.keys(columnHeightObj).find(
+  return Object.keys(columnHeightObj).find (
     (key) => columnHeightObj[key] === minHeight
   )
 }

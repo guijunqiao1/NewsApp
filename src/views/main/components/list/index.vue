@@ -6,18 +6,18 @@
       :isFinished="isFinished"
       @onLoad="getNewsData"
     >
-    <m-waterfall
-      class="p-1 w-full"
-      :data="newsList"
-      nodeKey="id"
-      :column="isMobile ? 2 : 5"
-      :picturePreReading="false"
-      :rowSpacing="10"
-    >
-      <template v-slot="{ item, width }">
-        <item-vue :data="item" :width="width" @change_img_type="change_img_type" @click="onToPins(item)" ></item-vue>
-      </template>
-    </m-waterfall>
+      <m-waterfall
+        class="p-1 w-full"
+        :data="newsList"
+        nodeKey="id"
+        :column="isMobile ? 2 : 5"
+        :picturePreReading="false"
+        :rowSpacing="10"
+      >
+        <template v-slot="{ item, width }">
+          <item-vue :data="item" :width="width" @change_img_type="change_img_type" @click="onToPins(item)" ></item-vue>
+        </template>
+      </m-waterfall>
     </m-infinite>
     <!-- 大图详情处理 -->
     <transition
@@ -69,6 +69,7 @@
     // waterfall 会监听数据变化，重新渲染布局
     newsList.value = []
   }
+
   // 监听 currentCategory 变化
   watch(
     () => store.getters.currentCategory,
@@ -166,6 +167,7 @@
       opacity: 0
     })
   }
+  
   const enter = (el, done) => {
     // gsap.to：从当前状态补间到目标状态。
     gsap.to(el, {

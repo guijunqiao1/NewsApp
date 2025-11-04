@@ -10,19 +10,21 @@
 </template>
 
 <script>
-// QQ 登录的 URL
-const QQ_LOGIN_URL =
-  'https://graph.qq.com/oauth2.0/authorize?client_id=101998494&response_type=token&scope=all&redirect_uri=https%3A%2F%2Fimooc-front.lgdsunday.club%2Flogin'
+  // QQ 登录的 URL
+  const QQ_LOGIN_URL =
+    'https://graph.qq.com/oauth2.0/authorize?client_id=101998494&response_type=token&scope=all&redirect_uri=https%3A%2F%2Fimooc-front.lgdsunday.club%2Flogin'
 </script>
 
 <script setup>
 import { onMounted } from 'vue'
 import { isMobile } from '@/utils/flexible'
 import brodacast from './brodacast'
+import { oauthLogin } from './oauth'
+import { LOGIN_TYPE_QQ } from '@/constants'
 
 // QQ 登录挂起
 onMounted(() => {
-  // 全局index引入的qq的sdk故可直接使用上该全局的sdk的配置对象来监听当前sdk组件的登陆事件以及进一步调用其中的方法(如登出)
+  // 全局index.html引入的qq的sdk故可直接使用上该全局的sdk的配置对象来监听当前sdk组件的登陆事件以及进一步调用其中的方法(如登出)
   QC.Login(
     {
       btnId: 'qqLoginBtn' //插入按钮的节点id
@@ -31,8 +33,7 @@ onMounted(() => {
     // 登录存在缓存，登录成功一次之后，下次进入会自动重新登录（即：触发该方法，所以我们应该在离开登录页面时，注销登录）
     (data, opts) => {
       console.log('QQ登录成功')
-      console.log(data)
-      // 注销登录，否则在后续登录中会直接触发该回调
+      // 1. 注销登录，否则在后续登录中会直接触发该回调
       QC.Login.signOut()
       // 2. 获取当前用户唯一标识，作为判断用户是否已注册的依据
       const accessToken = /access_token=((.*))&expires_in/.exec(
@@ -46,8 +47,12 @@ onMounted(() => {
       }
       // 4. 完成跨页面传输
       brodacast.send(oauthObj)
+
+      // 针对于 移动端而言：通过移动端触发 QQ 登录会展示三个页面，原页面、QQ 吊起页面、回调页面。并且移动端一个页面展示整屏内容，且无法直接通过 window.close() 关闭，所以在移动端中，我们需要在当前页面继续进行后续操作。
+      oauthLogin(LOGIN_TYPE_QQ, oauthObj)
+
       // 5. 在 PC 端下，关闭第三方窗口
-      // window.close()
+      window.close()
     }
   )
 })
@@ -74,8 +79,7 @@ const openQQWindow = async () => {
     // 登录成功,关闭通知
     brodacast.clear()
     // TODO：执行登录操作
-    console.log('TODO：执行登录操作')
-    console.log(oauthObj)
+    oauthLogin(LOGIN_TYPE_QQ, oauthObj)
   })
 }
 </script>

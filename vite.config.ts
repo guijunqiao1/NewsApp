@@ -35,6 +35,10 @@ export default defineConfig({
       '/news': {
         target: 'https://jisunews.market.alicloudapi.com',
         changeOrigin: true,
+      },
+      '/api':{
+        target: 'https://api.imooc-front.lgdsunday.club/',
+        changeOrigin: true,
       }
     }
   }

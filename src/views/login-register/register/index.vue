@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-  import { useRouter } from "vue-router";
+  import { useRouter,useRoute } from "vue-router";
   import {
       Form as VeeForm,
       Field as VeeField,
@@ -115,6 +115,7 @@
 
   // 获取路由对象
   const router = useRouter();
+  const route = useRoute()
   // 获状态库对象
   const store = useStore();
 
@@ -144,8 +145,11 @@
         username: regForm.value.username,
         password: regForm.value.password
       }
-      // 触发注册
-      await store.dispatch('user/register', payload)
+      // 触发注册,携带第三方数据
+      await store.dispatch('user/register', {
+        ...payload,
+      ...route.query
+      })
       // 注册成功，连续触发登录
       await store.dispatch('user/login', {
         ...payload,
