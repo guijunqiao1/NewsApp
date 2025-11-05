@@ -11,7 +11,10 @@ const { width, height } = useWindowSize();//获取当前实际设备屏幕的宽
  * 判断当前是都为移动设备，判断依据屏幕宽度否小于一个指定宽度
  */
 export const isMobile = computed(() => {//比较后计算当前实际宽高和界定值的大小关系而后返回计算属性值
-  return width.value < PC_DEVICE_WIDTH
+  // return width.value < PC_DEVICE_WIDTH
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  )
 })
 
 /**
