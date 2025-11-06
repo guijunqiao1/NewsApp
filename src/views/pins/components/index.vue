@@ -26,10 +26,10 @@
 
     <div v-if="!isMobile" style="text-align: center;">《{{ now_item.title }}》</div>
     <!-- 公共内容区 -->
-    <div v-if="now_item.title" class="xl:w-[80%] xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
+    <div v-if="now_item.title" class="xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
       <text v-if="isMobile">《{{ now_item.title }}》</text>
       <div 
-      class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg bg-main"
+      class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg bg-white"
       >
         <img
           ref="img_ele"

@@ -52,7 +52,7 @@ onMounted(() => {
       oauthLogin(LOGIN_TYPE_QQ, oauthObj)
 
       // 5. 在 PC 端下，关闭第三方窗口
-      window.close()
+      // window.close()
     }
   )
 })
@@ -76,8 +76,10 @@ const openQQWindow = async () => {
   )
   // 打开视窗之后开始等待
   brodacast.wait().then(async (oauthObj) => {
+    alert("222");
     // 登录成功,关闭通知
-    brodacast.clear()
+    console.log("当前·成功登录！！！！！");
+    // brodacast.clear()
     // TODO：执行登录操作
     oauthLogin(LOGIN_TYPE_QQ, oauthObj)
   })

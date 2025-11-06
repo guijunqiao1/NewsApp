@@ -45,7 +45,7 @@
               </div>
             </div>
           </div>
-          <!-- 隐藏域 -->
+          <!-- 隐藏域--file类型的type的用法 -->
           <input
             v-show="false"
             ref="inputFileTarget"
@@ -159,68 +159,68 @@ export default {
 </script>
 
 <script setup>
-    import { isMobile } from '@/utils/flexible'
-    import { confirm,message } from '@/libs'
-    import { useRouter } from 'vue-router'
-    import { useStore } from 'vuex'
-    import { ref,watch } from 'vue'
-    import { putProfile } from '@/api/sys'
-    //引入局部组件
-    import changeAvatarVue from './components/change-avatar.vue'
+  import { isMobile } from '@/utils/flexible'
+  import { confirm,message } from '@/libs'
+  import { useRouter } from 'vue-router'
+  import { useStore } from 'vuex'
+  import { ref,watch } from 'vue'
+  import { putProfile } from '@/api/sys'
+  //引入局部组件
+  import changeAvatarVue from './components/change-avatar.vue'
 
-    const store = useStore()
-    const router = useRouter()
+  const store = useStore()
+  const router = useRouter()
 
-    //双向绑定状态库中的userInfo对象
-    const userInfo = ref(store.getters.userInfo)
+  //双向绑定状态库中的userInfo对象
+  const userInfo = ref(store.getters.userInfo)
 
-    
-    // 隐藏域
-    const inputFileTarget = ref(null)
-    /**
-     * 更换头像点击事件
-     */
-    const onAvatarClick = () => {
-        inputFileTarget.value.click()
-    }
+  
+  // 隐藏域
+  const inputFileTarget = ref(null)
+  /**
+   * 更换头像点击事件
+   */
+  const onAvatarClick = () => {
+      inputFileTarget.value.click()
+  }
 
-    const isDialogVisible = ref(false)
-    // 选中的图片
-    const currentBolb = ref('')
+  const isDialogVisible = ref(false)
+  // 选中的图片
+  const currentBolb = ref('')
 
-    /**
-     * 头像选择之后的回调
-     */
-    const onSelectImgHandler = () => {
-      // 获取选中的文件
-      const imgFile = inputFileTarget.value.files[0]
-      // 生成 blob 对象
-      const blob = URL.createObjectURL(imgFile)
-      // 获取选中的图片
-      currentBolb.value = blob
-      // 展示 Dialog
-      isDialogVisible.value = true
-    }
+  /**
+   * 头像选择之后的回调
+   */
+  const onSelectImgHandler = () => {
+    // 获取选中的文件
+    const imgFile = inputFileTarget.value.files[0]
+    // 生成 blob 对象
+    const blob = URL.createObjectURL(imgFile)
+    // 获取选中的图片
+    currentBolb.value = blob
+    // 展示 Dialog
+    isDialogVisible.value = true
+  }
 
-    /**
-     * 移动端后退处理
-     */
-    const onNavbarLeftClick = () => {
-        //全局路由状态修改
-        store.commit('app/changeRouterType', 'back')
-        router.back()
-    }
+  /**
+   * 移动端后退处理
+   */
+  const onNavbarLeftClick = () => {
+      //全局路由状态修改
+      store.commit('app/changeRouterType', 'back')
+      router.back()
+  }
 
-    /**
-     * 移动端：退出登录
-     */
-    const onLogoutClick = () => {
-        confirm('确定要退出登录吗？').then(() => {
-            store.dispatch('user/logout')
-            //定向
-            router.push('/');
-        })
-    }
+  /**
+   * 移动端：退出登录
+   */
+  const onLogoutClick = () => {
+      confirm('确定要退出登录吗？').then(() => {
+          store.dispatch('user/logout')
+          //定向
+          router.push('/');
+      })
+  }
 
   /**
    * 修改个人信息
@@ -239,12 +239,12 @@ export default {
   /**
    * 监听 dialog 关闭
    */
-  watch(isDialogVisible, (val) => {
+  watch(()=>isDialogVisible, (val) => {
     if (!val) {
       // 防止 change 不重复触发
       inputFileTarget.value.value = null;//上传文件缓存置为空
     }
-  })
+  },{deep:true})
 
 
   /**
@@ -259,11 +259,11 @@ export default {
 
 <!-- 
 input原生事件解释补充：
-<input type>	      input 事件	        change 事件
-text	          每输入一个字符触发      	失焦时触发
-password	          同上                	同上
-checkbox	      点击勾选时触发	    点击勾选时也触发（两者几乎等价）
-radio	          切换选中项时触发	      切换选中项时也触发
-file	          选中文件后触发	      选中文件后触发（两者一致）
-range	          滑动时连续触发        	滑动停止时触发  
+  <input type>	      input 事件	        change 事件
+  text	          每输入一个字符触发      	失焦时触发
+  password	          同上                	同上
+  checkbox	      点击勾选时触发	    点击勾选时也触发（两者几乎等价）
+  radio	          切换选中项时触发	      切换选中项时也触发
+  file	          选中文件后触发	      选中文件后触发（两者一致）
+  range	          滑动时连续触发        	滑动停止时触发  
  -->

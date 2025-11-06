@@ -79,6 +79,7 @@
     const containerLeft = ref(0)
     // 记录每列高度的容器
     const columnHeightObj = ref({})
+
     /**
      * 初始化各列的高度为0
      */
@@ -154,8 +155,8 @@
         itemElements.forEach((el) => {
           itemHeights.push(el.clientHeight)
         })
-          // 渲染位置--在确保加载完成之后再进行位置计算
-          useItemLocation()
+        // 渲染位置--在确保加载完成之后再进行位置计算
+        useItemLocation()
       })
     }
     /**
@@ -263,7 +264,7 @@
     (newVal)=>{
       // 重新计算列宽
       useColumnWidth()
-      // 重置所有定位数据
+      // 重置所有定位数据记录
       props.data.forEach((item) => {
         item._style = null
       })

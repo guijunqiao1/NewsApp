@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { service_api } from '@/utils/request';
+
 import axios from "axios";
 
 /**
@@ -14,12 +14,19 @@ export const getCaptcha = (data) => {
  */
 export const loginUser = (data) => {
 
-  return service_api({
-    url: '/login',
-    method: 'POST',
-    data
-  })
+  // 封装内容对象
+  const res_obj = {
+    token:true
+  }
 
+  //实际的请求接口，没有做数据库存储逻辑，主攻核心前端逻辑
+  // return request({
+  //   url: '/login',
+  //   method: 'POST',
+  //   data
+  // })
+
+  return Promise.resolve(res_obj);
 }
 
 /**
@@ -67,11 +74,18 @@ export const putProfile = (data) => {
  * 注册
  */
 export const registerUser = (data) => {
-  return service_api({
-    url: '/sys/register',
-    method: 'POST',
-    data
-  })
+
+  return Promise.resolve({
+    a:1
+  });
+
+
+  // 实际请求的接口
+  // return request({
+  //   url: '/sys/register',
+  //   method: 'POST',
+  //   data
+  // })
 }
 
 

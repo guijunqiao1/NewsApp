@@ -23,6 +23,8 @@ const wait = () => {
     if (broadcastChannel) {
       // 触发 message 事件时的回调函数
       broadcastChannel.onmessage = async (event) => {
+        alert("111");
+        console.log("成功接收到消息！！！！！！！");
         // 改变 promise 状态
         resolve(event.data)
       }

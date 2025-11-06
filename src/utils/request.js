@@ -11,23 +11,18 @@ const headers = {
   'Content-Type': 'application/json; charset=UTF-8',
 };
 
+console.log("location",import.meta.env.VITE_BASE_API);
 
 //配置并封装接口基地址
-export const service = axios.create({
+const service = axios.create({
   //我的AppCode：5caf6b27a0614b56b40155be96f68da9
   // 根据项目状态，自动切换请求的服务地址
   baseURL: import.meta.env.VITE_BASE_API,
   timeout: 5000,
+  method:'get',
   headers:headers
 })
 
-export const service_api = axios.create({
-  //我的AppCode：5caf6b27a0614b56b40155be96f68da9
-  // 根据项目状态，自动切换请求的服务地址
-  baseURL: import.meta.env.VITE_BASE_API_Authentication,
-  timeout: 5000,
-  headers:headers
-})
 
 function request_interface(config){
       //链式追加
@@ -52,15 +47,33 @@ function request_interface(config){
       }
     return config // 必须返回配置
 }
-function response_interface(response){
+
+// 请求拦截器
+service.interceptors.request.use(
+  request_interface,
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+service.interceptors.request.use(
+  request_interface,
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+/**
+ * 响应拦截器，响应数据之后，所有的then之前被调用
+ */
+service.interceptors.response.use(
+  (response)=>{
     const {msg, result} = response.data
     if(msg==='ok'){
       return result
     }
     //统一拦截错误响应
     return Promise.reject(new Error(msg))
-}
-function response_interface_error(error){
+  },(error) => {
     // 处理 token--响应超时问题
     if (
       error.response &&
@@ -72,42 +85,6 @@ function response_interface_error(error){
     }
     // TODO: 提示错误消息
     return Promise.reject(error)
-}
-
-// 请求拦截器
-service.interceptors.request.use(
-  (config) => {
-    request_interface(config);
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-service_api.interceptors.request.use(
-  (config) => {
-    request_interface(config);
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-
-/**
- * 响应拦截器，响应数据之后，所有的then之前被调用
- */
-service.interceptors.response.use(
-  (response)=>{
-    response_interface(response);
-  },(error) => {
-    response_interface_error(error);
-  }
-)
-service_api.interceptors.response.use(
-  (response)=>{
-    response_interface(response);
-  },(error) => {
-    response_interface_error(error);
   }
 )
 
