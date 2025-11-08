@@ -111,3 +111,9 @@ export const LOGIN_TYPE_QQ = 'QQ'
 
 // 兔小巢反馈地址
 export const FEEDBACK_URL = 'https://support.qq.com/product/790385'
+
+// 微博APP Key---即认证方的id
+export const WEI_BO_APP_KEY = '3454329089'
+
+// 微博用户的 UID---分享目标的uid
+export const WEI_BO_UID = '7927272477'

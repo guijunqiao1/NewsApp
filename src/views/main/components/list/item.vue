@@ -21,7 +21,10 @@
         class="hidden xl:block opacity-0 w-full h-full absolute bg-zinc-900/50 top-0 left-0 rounded duration-300 group-hover:opacity-100"
       >
         <!-- 分享 -->
-        <m-button class="absolute top-1.5 left-1.5">分享</m-button>
+        <m-button
+         @click="onShareClick"
+         class="absolute top-1.5 left-1.5"
+         >分享</m-button>
         <!-- 收藏 -->
         <m-button
           class="absolute top-1.5 right-1.5"
@@ -64,6 +67,8 @@
 
 <script setup>
   import { useFullscreen, useElementBounding } from '@vueuse/core'
+  import { weiboShare } from '@/utils/share'
+
   import { ref, computed } from 'vue'
   import { message } from '@/libs'
   // 引入图片资源保存包
@@ -156,6 +161,20 @@
         location: imgContainerCenter,
         img_type
       })
+    }
+
+
+
+
+
+    /**
+     * 分享按钮点击处理
+     */
+    const onShareClick = () => {
+      weiboShare(
+        props.data.pic,
+        `http://localhost:5173/pins/${props.data.id}`
+      )
     }
 
 </script>

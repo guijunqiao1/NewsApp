@@ -73,8 +73,6 @@
     }
   }
 
-
-
   /**
    * 记录页面滚动位置
    */
@@ -89,8 +87,6 @@
     // 跳转
     containerTarget.value.scrollTop = containerTargetScrollY.value;//此处跳转发生在路由缓存被激活回来的时候
   })
-
-
 
   /**
    * VIP 按钮点击事件
