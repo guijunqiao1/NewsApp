@@ -106,3 +106,8 @@ export const BUCKET = 'guijunqiao'
 // qq 登录
 export const LOGIN_TYPE_OAUTH_NO_REGISTER_CODE = 204
 export const LOGIN_TYPE_QQ = 'QQ'
+
+
+
+// 兔小巢反馈地址
+export const FEEDBACK_URL = 'https://support.qq.com/product/790385'

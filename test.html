@@ -6,53 +6,25 @@
   <title>Document</title>
 </head>
 <body>
-  <!-- <div class="container">
-    <div class="left">左栏内容</div>
-    <div class="right">右栏内容</div>
-  </div> -->
-
-  <div class="container">
-    <div class="child">1</div>
-    <div class="child">2</div>
-    <div class="child">3</div>
-  </div>
-
+  <div class="now"></div>
 </body>
 </html>
+
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-  }
-  .container {
-    display: flex;
-    justify-content: center;
-  }
-  .container>.child {
-    /* flex: 1; */
-  }
-  .child:nth-child(1) {
-    width: 100px;
-    height: 100px;
-    background-color: skyblue;
-    /* flex-shrink: 1; */
-  }
-  .child:nth-child(2) {
-    width: 200px;
-    height: 100px;
-    background-color: skyblue;
-    /* flex-shrink: 1; */
-    flex-basis: auto;
-  }
-  .child:nth-child(3) {
-    width: 300px;
-    height: 100px;
-    background-color: skyblue;
-    /* flex-shrink: 1; */
-    flex-basis: 0;
-    flex-basis: auto;
-
-
+  .now {
+    /* display: flex;
+    width: 0px;
+    height: 0p  x;
+    box-sizing: content-box;
+    border: 20px solid skyblue;
+    border-top: 0;
+    background-color: gray; */
+    width: 0px;
+    height: 0px;
+    border-top: 30px solid orange;    /* 红色上边框 */
+    border-right: 30px solid green; /* 蓝色右边框 */
+    border-bottom: 0; /* 绿色下边框 */
+    border-left: 0; /* 橙色左边框 */
   }
 
 
