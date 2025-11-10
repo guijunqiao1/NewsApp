@@ -1,7 +1,7 @@
 <template>
     <!-- 引导页 -->
     <div
-      class="guide-start w-4 h-4 mb-1 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
+      class="fixed bottom-[30vh] right-[10px] guide-start w-4 h-4 mb-1 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
     >
       <m-svg-icon
         name="guide"
@@ -11,10 +11,11 @@
       ></m-svg-icon>
     </div>
     <!-- 反馈 -->
-    <m-popover class="flex items-center guide-feedback" placement="top-left">
+    <m-popover class="guide-feedback flex items-center" placement="top-left">
       <template #reference>
         <div
-          class="w-4 h-4 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
+          class="fixed bottom-[40vh] right-[10px] w-4 h-4 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
+          @click="onToFeedback"
         >
           <m-svg-icon
             name="feedback"
@@ -27,7 +28,6 @@
       <div class="w-[140px] overflow-hidden">
         <div
           class="flex items-center p-1 cursor-pointer rounded hover:bg-zinc-100/60 dark:hover:bg-zinc-800"
-          @click="onToFeedback"
         >
           <m-svg-icon
             name="feedback"
