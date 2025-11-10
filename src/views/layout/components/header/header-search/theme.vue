@@ -11,7 +11,6 @@
       >
         <img
           class="h-full w-full object-cover rounded"
-          v-lazy
           :src="themeData.big.photo"
           alt=""
         />
@@ -20,7 +19,7 @@
         >
           # {{ themeData.big.title }}
         </p>
-      </div>
+      </div>t
       <!-- 热门列表项展示 -->
       <div class="flex flex-wrap flex-1 max-w-[845px]">
         <div
@@ -33,7 +32,6 @@
         >
           <img
             class="w-full h-full object-cover rounded"
-            v-lazy
             :src="item.photo"
           />
           <p
