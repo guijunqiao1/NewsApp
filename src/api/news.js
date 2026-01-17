@@ -2,12 +2,12 @@ import request from "@/utils/request";
 
 //全局封装id标识生成方法
 function add_id(obj_item){
-    obj_item.result.list.forEach((item,index) => {   
+    obj_item.result.list.forEach((item) => {   
         if(item.weburl.includes('article')){
             const step1 = item.weburl.split('_')[1];
             item['id'] = step1;
         }else if(item.weburl.includes('doc')){
-            //"weburl": "https:\/\/news.sina.com.cn\/w\/2025-10-13\/doc-inftsvuy3981809.shtml",
+      //"weburl": "https://news.sina.com.cn/w/2025-10-13/doc-inftsvuy3981809.shtml",
             const step1 = item.weburl.split('doc-')[1];
             const step2 = step1.split('.')[0];
             let start = null;

@@ -4,8 +4,12 @@ import pluginVue from "eslint-plugin-vue";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
-  { 
-    files: ["**/*.{js,mjs,cjs,vue}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: {...globals.browser, ...globals.node} } 
+  // 允许 server 目录使用 console
+  {
+    files: ["server/**/*.js"],
+    rules: {
+      "no-console": "off",
+    },
   },
   {
 		rules: {
