@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+// 添加 vitest 配置以识别测试文件
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 //引入nodejs内置模块path的content
@@ -37,5 +39,11 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  // Vitest 配置
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}', 'src/**/*_test.{js,ts,jsx,tsx}'],
   }
 })
