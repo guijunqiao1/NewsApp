@@ -4,7 +4,8 @@
     <!-- 纵轴溢出使用scroll类名赋值 -->
     <ul class="overflow-y-scroll">
       <li
-        v-for="(item, index) in $store.getters.categorys"
+        v-for="item in $store.getters.categorys"
+        :key="item.id"
         @click="childItemClick(item)"
         class="text-lg text-zinc-900 px-1 py-1.5 duration-100 active:bg-zinc-100 dark:text-zinc-300 dark:active:bg-zinc-900"
         >

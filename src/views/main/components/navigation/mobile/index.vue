@@ -19,7 +19,8 @@
         ></li>
       <!-- 列表项内容 -->
       <li
-        v-for="(item, index) in store.getters.categorys"
+        v-for="item in store.getters.categorys"
+        :key="item.id"
         class="shrink-0 px-1.5 py-0.5 duration-200 last:mr-4"
         :ref="setItemRef"
         :class="{ 'text-zinc-100': item.id === store.getters.currentCategoryIndex }"
