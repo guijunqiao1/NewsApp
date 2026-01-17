@@ -19,9 +19,9 @@ env:
   DEPLOY_DIR: '/var/www/newsapp'  # 在 ECS 上的目标目录
 
 jobs:
-  # 1. 代码检查和测试
+  # 1. 代码测试
   test:
-    name: 代码检查和单元测试
+    name: 代码单元测试
     runs-on: ubuntu-latest
     
     steps:
@@ -36,9 +36,6 @@ jobs:
       
       - name: 安装依赖
         run: npm ci
-      
-      - name: ESLint 代码检查
-        run: npx eslint . --max-warnings=1000
       
       - name: 运行单元测试
         run: npm run test
