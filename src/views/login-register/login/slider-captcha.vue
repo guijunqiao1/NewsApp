@@ -27,8 +27,8 @@
 </script>
 
 <script setup>
-    import '@/vendor/sliderCaptcha/slidercaptcha.min.css'
-    import '@/vendor/sliderCaptcha/longbow.slidercaptcha.min.js'
+    import '@/vendor/SliderCaptcha/slidercaptcha.min.css'
+    import '@/vendor/SliderCaptcha/longbow.slidercaptcha.min.js'
     import { getCaptcha } from '@/api/sys'
     import { onMounted } from 'vue'
     const emits = defineEmits([EMITS_CLOSE, EMITS_SUCCESS])
