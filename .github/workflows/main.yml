@@ -15,7 +15,7 @@ on:
   workflow_dispatch: # 允许手动触发
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '18.x'
   DEPLOY_DIR: '/var/www/newsapp'  # 在 ECS 上的目标目录
 
 jobs:
@@ -42,7 +42,6 @@ jobs:
       
       - name: 运行单元测试
         run: npm run test
-        continue-on-error: true
       
       - name: 构建前端项目（验证构建）
         run: npm run build
