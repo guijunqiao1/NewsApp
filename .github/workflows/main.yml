@@ -37,6 +37,9 @@ jobs:
       - name: 安装依赖
         run: npm ci
       
+      - name: 安装 rolldown 原生绑定
+        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
+      
       - name: 运行单元测试
         run: npm run test
       
@@ -61,6 +64,9 @@ jobs:
 
       - name: 安装依赖
         run: npm ci
+      
+      - name: 安装 rolldown 原生绑定
+        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
 
       - name: 构建前端项目（生成 dist 文件夹）
         run: npm run build
