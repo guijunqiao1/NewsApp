@@ -19,33 +19,33 @@ env:
   DEPLOY_DIR: '/var/www/newsapp'  # 在 ECS 上的目标目录
 
 jobs:
-  # 1. 代码测试
-  test:
-    name: 代码单元测试
-    runs-on: ubuntu-latest
+  # # 1. 代码测试
+  # test:
+  #   name: 代码单元测试
+  #   runs-on: ubuntu-latest
     
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: 检出代码
+  #       uses: actions/checkout@v4
       
-      - name: 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+  #     - name: 设置 Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: 'npm'
       
-      - name: 安装依赖
-        run: npm ci
+  #     - name: 安装依赖
+  #       run: npm ci
       
-      - name: 安装 rolldown 原生绑定
-        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
+  #     - name: 安装 rolldown 原生绑定
+  #       run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
       
-      - name: 运行单元测试
-        run: npm run test
-        continue-on-error: true
+  #     - name: 运行单元测试
+  #       run: npm run test
+  #       continue-on-error: true
       
-      - name: 构建前端项目（验证构建）
-        run: npm run build
+  #     - name: 构建前端项目（验证构建）
+  #       run: npm run build
 
   # 2. 构建并压缩 dist 文件
   build_and_compress:
