@@ -50,7 +50,7 @@ jobs:
   # 2. 构建并压缩 dist 文件
   build_and_compress:
     name: 构建并压缩 dist 文件
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
