@@ -76,13 +76,13 @@ jobs:
         run: tar -czf dist.tar.gz dist/
 
       - name: 上传 dist 文件到 ECS
-        uses: scottcorgan/ssh-upload@v1.0.0
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
-          private_key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+          key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
           source: dist.tar.gz
-          destination: /tmp/dist.tar.gz
+          target: /tmp/
 
   # 3. 部署到 ECS
   deploy:
