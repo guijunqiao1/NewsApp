@@ -48,15 +48,30 @@ jobs:
         run: npm run build
 
   # 2. 构建并压缩 dist 文件
+  # 部署依赖仓库 Secrets：ECS_HOST、ECS_USER、ECS_SSH_PRIVATE_KEY
+  # 配置路径：GitHub 仓库 → Settings → Secrets and variables → Actions
   build_and_compress:
     name: 构建并压缩 dist 文件
-    # needs: test
+    needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+
+      - name: 检查部署所需 Secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.ECS_HOST }}" ] && missing="${missing} ECS_HOST"
+          [ -z "${{ secrets.ECS_USER }}" ] && missing="${missing} ECS_USER"
+          [ -z "${{ secrets.ECS_SSH_PRIVATE_KEY }}" ] && missing="${missing} ECS_SSH_PRIVATE_KEY"
+          if [ -n "${missing}" ]; then
+            echo "::error::以下 Secrets 未配置，无法连接 ECS：${missing}"
+            echo "::error::请到 仓库 Settings → Secrets and variables → Actions 添加对应项。"
+            echo "::error::ECS_SSH_PRIVATE_KEY 需为完整私钥内容（含 -----BEGIN ... ----- 与 -----END ... -----），勿含多余空格/换行。"
+            exit 1
+          fi
       
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -75,12 +90,19 @@ jobs:
       - name: 压缩 dist 目录
         run: tar -czf dist.tar.gz dist/
 
+      - name: 准备 SSH 私钥文件
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |
+          printf '%s\n' "$SSH_KEY" > deploy_key
+          chmod 600 deploy_key
+
       - name: 上传 dist 文件到 ECS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
-          key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+          key_path: deploy_key
           source: dist.tar.gz
           target: /tmp/
 
