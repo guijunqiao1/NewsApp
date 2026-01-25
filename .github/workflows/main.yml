@@ -107,29 +107,30 @@ jobs:
           fi
           echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
 
-      - name: 测试 SSH 连接（调试）
+      - name: 上传 dist 文件到 ECS（含重试）
         env:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
-        run: |
+        run: |  
           mkdir -p ~/.ssh
-          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/test_key
-          echo >> ~/.ssh/test_key
-          chmod 600 ~/.ssh/test_key
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
+          echo >> ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          # 尝试连接并显示详细错误
-          ssh -v -i ~/.ssh/test_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH 连接成功'" || {
-            echo "::warning::SSH 连接测试失败，但继续尝试 SCP（可能是权限或配置问题）"
-          }
-
-      - name: 上传 dist 文件到 ECS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          key_path: deploy_key
-          source: dist.tar.gz
-          target: /tmp/
-          debug: true
+          for i in 1 2 3 4 5; do
+            echo "SCP 上传尝试 $i/5 ..."
+            if scp -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=60 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=3 \
+              dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/; then
+              echo "SCP 上传成功"
+              exit 0
+            fi
+            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
+          done
+          echo "::error::SCP 上传 5 次均失败（handshake EOF 多为网络抖动，可重跑 workflow）"
+          exit 1
 
   # 3. 部署到 ECS
   deploy:
