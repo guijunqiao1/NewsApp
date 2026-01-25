@@ -94,27 +94,26 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
         run: |
-          printf '%s\n' "$SSH_KEY" > deploy_key
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > deploy_key
+          echo >> deploy_key
           chmod 644 deploy_key
-          # 验证私钥格式
-          if ! head -1 deploy_key | grep -q "BEGIN.*PRIVATE KEY"; then
+          if ! grep -q "BEGIN.*PRIVATE KEY" deploy_key; then
             echo "::error::私钥格式错误：缺少 BEGIN 标记"
             exit 1
           fi
-          if ! tail -1 deploy_key | grep -q "END.*PRIVATE KEY"; then
-            echo "::error::私钥格式错误：缺少 END 标记"
+          if ! grep -q "END.*PRIVATE KEY" deploy_key; then
+            echo "::error::私钥格式错误：缺少 END 标记。请确认 GitHub Secret ECS_SSH_PRIVATE_KEY 为完整私钥，包含整行 -----END OPENSSH PRIVATE KEY----- 或 -----END RSA PRIVATE KEY-----，复制时勿遗漏。"
             exit 1
           fi
-          # 显示私钥类型（不显示内容）
-          echo "私钥类型: $(head -1 deploy_key)"
-          echo "私钥行数: $(wc -l < deploy_key)"
+          echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
 
       - name: 测试 SSH 连接（调试）
         env:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/test_key
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/test_key
+          echo >> ~/.ssh/test_key
           chmod 600 ~/.ssh/test_key
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
           # 尝试连接并显示详细错误
