@@ -6,7 +6,9 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run --config vitest.config.ts"
+    "test": "vitest run --config vitest.config.ts",
+    "ci": "npm ci && npm run build",
+    "ci:full": "npm ci && npm run test && npm run build"
   },
   "dependencies": {
     "@eslint/create-config": "^1.11.0",
