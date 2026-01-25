@@ -34,7 +34,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      - name: 安装依赖
+      - name: 安装依赖 
         run: npm ci
       
       - name: 安装 rolldown 原生绑定
@@ -96,6 +96,31 @@ jobs:
         run: |
           printf '%s\n' "$SSH_KEY" > deploy_key
           chmod 644 deploy_key
+          # 验证私钥格式
+          if ! head -1 deploy_key | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "::error::私钥格式错误：缺少 BEGIN 标记"
+            exit 1
+          fi
+          if ! tail -1 deploy_key | grep -q "END.*PRIVATE KEY"; then
+            echo "::error::私钥格式错误：缺少 END 标记"
+            exit 1
+          fi
+          # 显示私钥类型（不显示内容）
+          echo "私钥类型: $(head -1 deploy_key)"
+          echo "私钥行数: $(wc -l < deploy_key)"
+
+      - name: 测试 SSH 连接（调试）
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/test_key
+          chmod 600 ~/.ssh/test_key
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+          # 尝试连接并显示详细错误
+          ssh -v -i ~/.ssh/test_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH 连接成功'" || {
+            echo "::warning::SSH 连接测试失败，但继续尝试 SCP（可能是权限或配置问题）"
+          }
 
       - name: 上传 dist 文件到 ECS
         uses: appleboy/scp-action@v0.1.7
@@ -105,6 +130,7 @@ jobs:
           key_path: deploy_key
           source: dist.tar.gz
           target: /tmp/
+          debug: true
 
   # 3. 部署到 ECS
   deploy:
@@ -121,21 +147,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 解压 dist 文件并部署到 ECS
+      - name: 解压 dist 文件并部署到 ECS   
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} << 'EOF'
-            # 解压 dist 文件
-            tar -xzf /tmp/dist.tar.gz -C /tmp
-
-            # 替换目标文件夹的内容
-            rm -rf ${DEPLOY_DIR}/*
-            mv /tmp/dist/* ${DEPLOY_DIR}/
-
-            # 清理
-            rm -rf /tmp/dist.tar.gz /tmp/dist
-          EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} " \
+            tar -xzf /tmp/dist.tar.gz -C /tmp && \
+            rm -rf ${{ env.DEPLOY_DIR }}/* && \
+            mv /tmp/dist/* ${{ env.DEPLOY_DIR }}/ && \
+            rm -rf /tmp/dist.tar.gz /tmp/dist \
+          "
 
       - name: 健康检查
-        run: |
+        run: | 
           sleep 10
           curl -f http://${{ secrets.ECS_HOST }}/ || exit 1
