@@ -95,7 +95,7 @@ jobs:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
         run: |
           printf '%s\n' "$SSH_KEY" > deploy_key
-          chmod 600 deploy_key
+          chmod 644 deploy_key
 
       - name: 上传 dist 文件到 ECS
         uses: appleboy/scp-action@v0.1.7
