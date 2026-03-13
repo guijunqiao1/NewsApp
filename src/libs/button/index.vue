@@ -6,6 +6,7 @@
       sizeEnum[sizeKey].button,
       { 'active:scale-[1.05]': isActiveAnim }
     ]"
+    :disabled="loading"
     @click.stop="onBtnClick"
   >
     <!-- loading -->
@@ -96,12 +97,9 @@
             default: 'default',
             validator(val) {
                 // 1. 获取所有的可选项
-                const keys = Object.keys(sizeEnum).filter((key) => !key.includes('icon'))
+                const keys = Object.keys(sizeEnum)
                 // 2. 判断当前的值是否在可选项中
                 const result = keys.includes(val)
-                if (!result) {
-                    throw new Error(`你的 size 必须是 ${keys.join('、')} 中的一个`)
-                }
                 return result
             }
         },
@@ -117,9 +115,8 @@
         }
     })
     const emits = defineEmits([EMITS_CLICK])
-    // 如果用户传了icon，则需要在size前加一个前缀 icon-
     const sizeKey = computed(() => {
-        return props.icon ? 'icon-' + props.size : props.size;//匹配普通按钮与icon按钮的枚举size大小名
+        return props.size
     })
     /**
      * 处理点击事件
