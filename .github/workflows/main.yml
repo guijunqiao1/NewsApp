@@ -134,7 +134,7 @@ jobs:
 
   # 3. 部署到 ECS
   deploy:
-    name: 部署到 ECS
+    name: 部署到 ECS   
     needs: build_and_compress
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -215,7 +215,7 @@ jobs:
           fi
           REMOTE
 
-      - name: 健康检查
+      - name: 健康检查 
         run: |
           echo "等待服务启动..."
           sleep 10
