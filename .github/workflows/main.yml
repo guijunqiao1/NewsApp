@@ -173,7 +173,17 @@ jobs:
           fi
 
           echo '3) 生成/更新 Nginx 配置 /etc/nginx/sites-available/newsapp.conf ...'
-          cat >/etc/nginx/sites-available/newsapp.conf <<'NGINX_CONF'
+          if [ -d /etc/nginx/sites-available ] || [ -d /etc/nginx/sites-enabled ]; then
+            mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+            NGINX_CONF_PATH=/etc/nginx/sites-available/newsapp.conf
+            NGINX_LINK_PATH=/etc/nginx/sites-enabled/newsapp.conf
+          else
+            mkdir -p /etc/nginx/conf.d
+            NGINX_CONF_PATH=/etc/nginx/conf.d/newsapp.conf
+            NGINX_LINK_PATH=
+          fi
+
+          cat >"$NGINX_CONF_PATH" <<'NGINX_CONF'
           server {
               listen 80 default_server;
               listen [::]:80 default_server;
@@ -185,11 +195,12 @@ jobs:
               }
           }
           NGINX_CONF
-          sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" /etc/nginx/sites-available/newsapp.conf
+          sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" "$NGINX_CONF_PATH"
 
-          mkdir -p /etc/nginx/sites-enabled
-          ln -sf /etc/nginx/sites-available/newsapp.conf /etc/nginx/sites-enabled/newsapp.conf
-          if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi
+          if [ -n "$NGINX_LINK_PATH" ]; then
+            ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
+            if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi
+          fi
 
           echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...'
           chown -R "$USER:$USER" "$DEPLOY_DIR"
