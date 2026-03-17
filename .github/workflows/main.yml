@@ -150,54 +150,59 @@ jobs:
 
       - name: 解压 dist 文件并部署到 ECS（并安装/配置 Nginx 与 Node.js）
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} " \
-            set -e && \
-            echo '1) 解压最新前端构建包...' && \
-            tar -xzf /tmp/dist.tar.gz -C /tmp && \
-            mkdir -p ${{ env.DEPLOY_DIR }} && \
-            rm -rf ${{ env.DEPLOY_DIR }}/* && \
-            cp -a /tmp/dist/. ${{ env.DEPLOY_DIR }}/ && \
-            rm -rf /tmp/dist.tar.gz /tmp/dist && \
-            \
-            echo '2) 安装并配置 Nginx（如未安装）...' && \
-            if ! command -v nginx >/dev/null 2>&1; then \
-              if command -v apt-get >/dev/null 2>&1; then \
-                apt-get update -y && apt-get install -y nginx; \
-              else \
-                echo '当前系统非 Debian/Ubuntu，无法自动使用 apt-get 安装 nginx，请手动安装。' && exit 1; \
-              fi; \
-            fi && \
-            \
-            echo '3) 生成/更新 Nginx 配置 /etc/nginx/sites-available/newsapp.conf ...' && \
-            cat >/etc/nginx/sites-available/newsapp.conf <<'NGINX_CONF' && \
-server { \
-    listen 80 default_server; \
-    listen [::]:80 default_server; \
-    server_name _; \
-    root ${{ env.DEPLOY_DIR }}; \
-    index index.html; \
-    location / { \
-        try_files \$uri \$uri/ /index.html; \
-    } \
-} \
-NGINX_CONF
-            && \
-            mkdir -p /etc/nginx/sites-enabled && \
-            ln -sf /etc/nginx/sites-available/newsapp.conf /etc/nginx/sites-enabled/newsapp.conf && \
-            if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi && \
-            \
-            echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...' && \
-            chown -R $USER:$USER ${{ env.DEPLOY_DIR }} && \
-            chmod -R 755 ${{ env.DEPLOY_DIR }} && \
-            \
-            echo '5) 检查 Nginx 配置并重载服务...' && \
-            nginx -t && \
-            if command -v systemctl >/dev/null 2>&1; then \
-              systemctl restart nginx; \
-            else \
-              service nginx restart || nginx -s reload; \
-            fi \
-          "
+          DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "DEPLOY_DIR='$DEPLOY_DIR' bash -se" <<'REMOTE'
+          set -e
+
+          echo '1) 解压最新前端构建包...'
+          tar -xzf /tmp/dist.tar.gz -C /tmp
+          mkdir -p "$DEPLOY_DIR"
+          rm -rf "$DEPLOY_DIR"/*
+          cp -a /tmp/dist/. "$DEPLOY_DIR"/
+          rm -rf /tmp/dist.tar.gz /tmp/dist
+
+          echo '2) 安装并配置 Nginx（如未安装）...'
+          if ! command -v nginx >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              apt-get update -y
+              apt-get install -y nginx
+            else
+              echo '当前系统非 Debian/Ubuntu，无法自动使用 apt-get 安装 nginx，请手动安装。'
+              exit 1
+            fi
+          fi
+
+          echo '3) 生成/更新 Nginx 配置 /etc/nginx/sites-available/newsapp.conf ...'
+          cat >/etc/nginx/sites-available/newsapp.conf <<'NGINX_CONF'
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+              server_name _;
+              root __DEPLOY_DIR__;
+              index index.html;
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+          NGINX_CONF
+          sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" /etc/nginx/sites-available/newsapp.conf
+
+          mkdir -p /etc/nginx/sites-enabled
+          ln -sf /etc/nginx/sites-available/newsapp.conf /etc/nginx/sites-enabled/newsapp.conf
+          if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi
+
+          echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...'
+          chown -R "$USER:$USER" "$DEPLOY_DIR"
+          chmod -R 755 "$DEPLOY_DIR"
+
+          echo '5) 检查 Nginx 配置并重载服务...'
+          nginx -t
+          if command -v systemctl >/dev/null 2>&1; then
+            systemctl restart nginx
+          else
+            service nginx restart || nginx -s reload
+          fi
+          REMOTE
 
       - name: 健康检查
         run: | 
