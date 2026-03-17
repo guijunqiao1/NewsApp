@@ -216,8 +216,37 @@ jobs:
           REMOTE
 
       - name: 健康检查
-        run: | 
+        run: |
           echo "等待服务启动..."
-          sleep 15
-          echo "开始健康检查 http://${{ secrets.ECS_HOST }}/"
-          curl --retry 5 --retry-delay 3 --max-time 5 -f http://${{ secrets.ECS_HOST }}/ || exit 1
+          sleep 10
+
+          echo "1) 先在 ECS 本机检查 Nginx 是否可访问（127.0.0.1）"
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "bash -se" <<'REMOTE'
+          set -e
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 http://127.0.0.1/ >/dev/null; then
+              echo "ECS 本机健康检查通过"
+              exit 0
+            fi
+            echo "ECS 本机未就绪，等待 5s 重试（$i/6）..."
+            sleep 5
+          done
+          echo "ECS 本机健康检查失败：请在 ECS 上检查 nginx 状态与日志（systemctl status nginx / nginx -t）"
+          exit 1
+          REMOTE
+
+          echo "2) 再从 GitHub Runner 检查公网可达性 http://${{ secrets.ECS_HOST }}/"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --retry 0 \
+              http://${{ secrets.ECS_HOST }}/ >/dev/null; then
+              echo "公网健康检查通过"
+              exit 0
+            fi
+            echo "公网检查超时/失败，等待 10s 重试（$i/6）..."
+            sleep 10
+          done
+          echo "::error::公网健康检查失败：大概率是安全组/防火墙未放行 80，或 ECS_HOST 不可从公网访问。"
+          exit 1
