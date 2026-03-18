@@ -4,7 +4,7 @@ ARG NGINX_HTML_DIR=/usr/share/nginx/html
 FROM node:${NODE_VERSION}-bookworm-slim AS build
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json ./ 
 RUN npm ci
 RUN npm install @rolldown/binding-linux-x64-gnu --no-save || true
 
