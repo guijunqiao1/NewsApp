@@ -1,0 +1,252 @@
+name: CI/CD Pipeline
+
+"on":
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # 允许手动触发
+
+env:
+  NODE_VERSION: '20.x'
+  DEPLOY_DIR: '/var/www/newsapp'  # 在 ECS 上的目标目录
+
+jobs:
+  # 1. 代码测试
+  test:
+    name: 代码单元测试
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 安装依赖 
+        run: npm ci
+      
+      - name: 安装 rolldown 原生绑定
+        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
+      
+      - name: 运行单元测试
+        run: npm run test
+      
+      - name: 构建前端项目（验证构建）
+        run: npm run build
+
+  # 2. 构建并压缩 dist 文件
+  # 部署依赖仓库 Secrets：ECS_HOST、ECS_USER、ECS_SSH_PRIVATE_KEY
+  # 配置路径：GitHub 仓库 → Settings → Secrets and variables → Actions
+  build_and_compress:
+    name: 构建并压缩 dist 文件
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+ 
+      - name: 检查部署所需 Secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.ECS_HOST }}" ] && missing="${missing} ECS_HOST"
+          [ -z "${{ secrets.ECS_USER }}" ] && missing="${missing} ECS_USER"
+          [ -z "${{ secrets.ECS_SSH_PRIVATE_KEY }}" ] && missing="${missing} ECS_SSH_PRIVATE_KEY"
+          if [ -n "${missing}" ]; then
+            echo "::error::以下 Secrets 未配置，无法连接 ECS：${missing}"
+            echo "::error::请到 仓库 Settings → Secrets and variables → Actions 添加对应项。"
+            echo "::error::ECS_SSH_PRIVATE_KEY 需为完整私钥内容（含 -----BEGIN ... ----- 与 -----END ... -----），勿含多余空格/换行。"
+            exit 1
+          fi
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+      
+      - name: 安装 rolldown 原生绑定
+        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
+
+      - name: 构建前端项目（生成 dist 文件夹）
+        run: npm run build
+      
+      - name: 压缩 dist 目录
+        run: tar -czf dist.tar.gz dist/
+
+      - name: 准备 SSH 私钥文件
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > deploy_key
+          echo >> deploy_key
+          chmod 600 deploy_key
+          if ! grep -q "BEGIN.*PRIVATE KEY" deploy_key; then
+            echo "::error::私钥格式错误：缺少 BEGIN 标记"
+            exit 1
+          fi
+          if ! grep -q "END.*PRIVATE KEY" deploy_key; then
+            echo "::error::私钥格式错误：缺少 END 标记。请确认 GitHub Secret ECS_SSH_PRIVATE_KEY 为完整私钥，包含整行 -----END OPENSSH PRIVATE KEY----- 或 -----END RSA PRIVATE KEY-----，复制时勿遗漏。"
+            exit 1
+          fi
+          echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
+
+      - name: 上传 dist 文件到 ECS（含重试）
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |  
+          mkdir -p ~/.ssh
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
+          echo >> ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+          for i in 1 2 3 4 5; do
+            echo "SCP 上传尝试 $i/5 ..."
+            if scp -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=60 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=3 \
+              dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/; then
+              echo "SCP 上传成功"
+              exit 0
+            fi
+            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
+          done
+          echo "::error::SCP 上传 5 次均失败（handshake EOF 多为网络抖动，可重跑 workflow）"
+          exit 1
+
+  # 3. 部署到 ECS
+  deploy:
+    name: 部署到 ECS   
+    needs: build_and_compress
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    steps:
+      - name: 配置 SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${{ secrets.ECS_SSH_PRIVATE_KEY }}" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/id_rsa
+          echo >> ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+
+      - name: 解压 dist 文件并部署到 ECS（并安装/配置 Nginx 与 Node.js）
+        run: |
+          DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "DEPLOY_DIR='$DEPLOY_DIR' bash -se" <<'REMOTE'
+          set -e
+
+          echo '1) 解压最新前端构建包...'
+          tar -xzf /tmp/dist.tar.gz -C /tmp
+          mkdir -p "$DEPLOY_DIR"
+          rm -rf "$DEPLOY_DIR"/*
+          cp -a /tmp/dist/. "$DEPLOY_DIR"/
+          rm -rf /tmp/dist.tar.gz /tmp/dist
+
+          echo '2) 安装并配置 Nginx（如未安装）...'
+          if ! command -v nginx >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              apt-get update -y
+              apt-get install -y nginx
+            else
+              echo '当前系统非 Debian/Ubuntu，无法自动使用 apt-get 安装 nginx，请手动安装。'
+              exit 1
+            fi
+          fi
+
+          echo '3) 生成/更新 Nginx 配置 /etc/nginx/sites-available/newsapp.conf ...'
+          if [ -d /etc/nginx/sites-available ] || [ -d /etc/nginx/sites-enabled ]; then
+            mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+            NGINX_CONF_PATH=/etc/nginx/sites-available/newsapp.conf
+            NGINX_LINK_PATH=/etc/nginx/sites-enabled/newsapp.conf
+          else
+            mkdir -p /etc/nginx/conf.d
+            NGINX_CONF_PATH=/etc/nginx/conf.d/newsapp.conf
+            NGINX_LINK_PATH=
+          fi
+
+          cat >"$NGINX_CONF_PATH" <<'NGINX_CONF'
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+              server_name _;
+              root __DEPLOY_DIR__;
+              index index.html;
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+          NGINX_CONF
+          sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" "$NGINX_CONF_PATH"
+
+          if [ -n "$NGINX_LINK_PATH" ]; then
+            ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
+            if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi
+          fi
+
+          echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...'
+          chown -R "$USER:$USER" "$DEPLOY_DIR"
+          chmod -R 755 "$DEPLOY_DIR"
+
+          echo '5) 检查 Nginx 配置并重载服务...'
+          nginx -t
+          if command -v systemctl >/dev/null 2>&1; then
+            systemctl restart nginx
+          else
+            service nginx restart || nginx -s reload
+          fi
+          REMOTE
+
+      - name: 健康检查 
+        run: |
+          echo "等待服务启动..."
+          sleep 10
+
+          echo "1) 先在 ECS 本机检查 Nginx 是否可访问（127.0.0.1）"
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "bash -se" <<'REMOTE'
+          set -e
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 http://127.0.0.1/ >/dev/null; then
+              echo "ECS 本机健康检查通过"
+              exit 0
+            fi
+            echo "ECS 本机未就绪，等待 5s 重试（$i/6）..."
+            sleep 5
+          done
+          echo "ECS 本机健康检查失败：请在 ECS 上检查 nginx 状态与日志（systemctl status nginx / nginx -t）"
+          exit 1
+          REMOTE
+
+          echo "2) 再从 GitHub Runner 检查公网可达性 http://${{ secrets.ECS_HOST }}/"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --retry 0 \
+              http://${{ secrets.ECS_HOST }}/ >/dev/null; then
+              echo "公网健康检查通过"
+              exit 0
+            fi
+            echo "公网检查超时/失败，等待 10s 重试（$i/6）..."
+            sleep 10
+          done
+          echo "::error::公网健康检查失败：大概率是安全组/防火墙未放行 80，或 ECS_HOST 不可从公网访问。"
+          exit 1
