@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm ci
 RUN npm install @rolldown/binding-linux-x64-gnu --no-save || true
 
-COPY . .
+COPY . . 
 RUN npm run build
 
 FROM nginx:stable-alpine
