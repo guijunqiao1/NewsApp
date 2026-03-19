@@ -15,7 +15,7 @@ name: CI/CD Pipeline
   workflow_dispatch: # 允许手动触发
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '20'
   # 容器内静态文件目录（与官方 nginx 镜像默认目录一致）
   NGINX_HTML_DIR: '/usr/share/nginx/html'
   # Docker 容器/镜像相关命名（ECS 上容器会以该名称运行）
