@@ -145,7 +145,7 @@ jobs:
           set -e
           echo '1) 确保 Docker 已安装并启动...'
           if ! command -v docker >/dev/null 2>&1; then
-            if command -v apt-get >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then 
               apt-get update -y
               apt-get install -y ca-certificates curl gnupg
               curl -fsSL https://get.docker.com | sh
