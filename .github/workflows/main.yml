@@ -94,7 +94,26 @@ jobs:
       - name: 生成镜像标签
         id: meta
         run: |
-          IMAGE="${{ secrets.TCR_REGISTRY }}/${{ secrets.TCR_NAMESPACE }}/${{ secrets.TCR_REPOSITORY }}"
+          # 规范化：防止 secrets 里误填入多段路径（例如把 namespace/repo 填进了某一项）
+          REG="${{ secrets.TCR_REGISTRY }}"
+          NS="${{ secrets.TCR_NAMESPACE }}"
+          REPO="${{ secrets.TCR_REPOSITORY }}"
+
+          # 去掉可能的协议头与尾部斜杠
+          REG="${REG#http://}"
+          REG="${REG#https://}"
+          REG="${REG%/}"
+
+          # 如果 NS/REPO 被误填成带路径，取最后一段
+          NS="${NS##*/}"
+          REPO="${REPO##*/}"
+
+          if [ -z "$NS" ] || [ -z "$REPO" ]; then
+            echo "::error::TCR_NAMESPACE 或 TCR_REPOSITORY 为空（或格式不正确）。"
+            exit 1
+          fi
+
+          IMAGE="${REG}/${NS}/${REPO}"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
           echo "tag_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "tag_latest=latest" >> "$GITHUB_OUTPUT"
@@ -134,7 +153,12 @@ jobs:
 
       - name: 在 ECS 上安装/配置 Docker，登录 TCR，拉取并启动 nginx 容器
         run: |
-          IMAGE="${{ secrets.TCR_REGISTRY }}/${{ secrets.TCR_NAMESPACE }}/${{ secrets.TCR_REPOSITORY }}"
+          REG="${{ secrets.TCR_REGISTRY }}"
+          NS="${{ secrets.TCR_NAMESPACE }}"
+          REPO="${{ secrets.TCR_REPOSITORY }}"
+          REG="${REG#http://}"; REG="${REG#https://}"; REG="${REG%/}"
+          NS="${NS##*/}"; REPO="${REPO##*/}"
+          IMAGE="${REG}/${NS}/${REPO}"
           IMAGE_TAG="${GITHUB_SHA}"
           CONTAINER_NAME="${{ env.APP_NAME }}-nginx"
 
