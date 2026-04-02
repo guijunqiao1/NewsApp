@@ -110,14 +110,25 @@ jobs:
       - name: 上传 dist 文件到 ECS（含重试）
         env:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
-        run: |  
+        run: |
           mkdir -p ~/.ssh
           printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
           echo >> ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          for i in 1 2 3 4 5; do
-            echo "SCP 上传尝试 $i/5 ..."
+
+          echo "先校验 SSH 登录…"
+          if ! ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
+            ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo ok"; then
+            echo "::error::SSH 登录失败（Connection closed 常见原因）："
+            echo "::error::1. 认证：ECS authorized_keys 中公钥须与 ECS_SSH_PRIVATE_KEY 对应，ECS_USER 正确"
+            echo "::error::2. ECS 若启用 fail2ban：频繁连接可能封禁 GitHub IP，需在 ECS 上 unban 或放宽规则"
+            echo "::error::3. 防火墙/安全组：放行 22，且未对海外 IP 做限制"
+            exit 1
+          fi
+
+          for i in 1 2 3; do
+            echo "SCP 上传尝试 $i/3 …"
             if scp -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=no \
               -o ConnectTimeout=60 \
@@ -127,9 +138,9 @@ jobs:
               echo "SCP 上传成功"
               exit 0
             fi
-            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
+            [ $i -lt 3 ] && echo "等待 30s 后重试…" && sleep 30
           done
-          echo "::error::SCP 上传 5 次均失败（handshake EOF 多为网络抖动，可重跑 workflow）"
+          echo "::error::SCP 上传 3 次均失败。若为 Connection closed，请检查 ECS fail2ban、防火墙及认证配置后重跑 workflow。"
           exit 1
 
   # 3. 部署到 ECS
