@@ -1,17 +1,17 @@
 // // debounce--手写防抖:
 // // function debounce(fn,delay){
-// //   let timer = null;  
+// //   let timer = null;   
 // //   return ()=>{
 // //     if(timer){
 // //       clearTimeout(timer);
 // //     }
-// //     timer = setTimeout(()=>{
+// //     timer = setTimeout(()=>{   
 // //       fn();
 // //     },delay)
 // //   }
-// // }
+// // } 
 
-// // 最终版本：
+// // 最终版本： 
 // function debounce(fn, delay = 300) {
 //   let timer = null;
 //   return function (...args) {

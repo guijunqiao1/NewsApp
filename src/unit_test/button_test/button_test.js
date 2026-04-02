@@ -52,35 +52,31 @@ describe('Button.vue', () => {
   })
 
   it('should not emit click event when button is in loading state', async () => {
-    const emitClick = vi.fn() // 创建一个模拟的函数
     const wrapper = mount(Button, {
       props: {
         loading: true,
       },
-      emit: ['click'], // 监听 click 事件
     })
 
     // 按钮点击事件
     await wrapper.trigger('click')
 
     // 验证按钮是否没有触发点击事件
-    expect(emitClick).not.toHaveBeenCalled()
+    expect(wrapper.emitted('click')).toBeUndefined()
   })
 
   it('should emit click event when button is clicked and not loading', async () => {
-    const emitClick = vi.fn() // 创建一个模拟的函数
     const wrapper = mount(Button, {
       props: {
         loading: false,
       },
-      emit: ['click'], // 监听 click 事件
     })
 
     // 按钮点击事件
     await wrapper.trigger('click')
 
     // 验证按钮点击后是否触发了事件
-    expect(emitClick).toHaveBeenCalled()
+    expect(wrapper.emitted('click')).toBeTruthy()
   })
 
   it('should render icon button when icon prop is passed', () => {
