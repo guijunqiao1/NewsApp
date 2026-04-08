@@ -90,47 +90,12 @@ jobs:
       - name: 压缩 dist 目录
         run: tar -czf dist.tar.gz dist/
 
-      - name: 准备 SSH 私钥文件
-        env:
-          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
-        run: |
-          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > deploy_key
-          echo >> deploy_key
-          chmod 600 deploy_key
-          if ! grep -q "BEGIN.*PRIVATE KEY" deploy_key; then
-            echo "::error::私钥格式错误：缺少 BEGIN 标记"
-            exit 1
-          fi
-          if ! grep -q "END.*PRIVATE KEY" deploy_key; then
-            echo "::error::私钥格式错误：缺少 END 标记。请确认 GitHub Secret ECS_SSH_PRIVATE_KEY 为完整私钥，包含整行 -----END OPENSSH PRIVATE KEY----- 或 -----END RSA PRIVATE KEY-----，复制时勿遗漏。"
-            exit 1
-          fi
-          echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
-
-      - name: 上传 dist 文件到 ECS（含重试）
-        env:
-          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
-        run: |  
-          mkdir -p ~/.ssh
-          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
-          echo >> ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          for i in 1 2 3 4 5; do
-            echo "SCP 上传尝试 $i/5 ..."
-            if scp -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=60 \
-              -o ServerAliveInterval=15 \
-              -o ServerAliveCountMax=3 \
-              dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/; then
-              echo "SCP 上传成功"
-              exit 0
-            fi
-            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
-          done
-          echo "::error::SCP 上传 5 次均失败（handshake EOF 多为网络抖动，可重跑 workflow）"
-          exit 1
+      - name: 保存构建产物（供 deploy job 使用）
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-tarball
+          path: dist.tar.gz
+          if-no-files-found: error
 
   # 3. 部署到 ECS
   deploy:
@@ -140,6 +105,11 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
     steps:
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-tarball
+
       - name: 配置 SSH
         run: |
           mkdir -p ~/.ssh
@@ -147,6 +117,32 @@ jobs:
           echo >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+
+      - name: 上传 dist 文件到 ECS（含重试与落盘校验）
+        run: |
+          if [ ! -f dist.tar.gz ]; then
+            echo "::error::未找到 dist.tar.gz，artifact 下载异常。"
+            exit 1
+          fi
+          for i in 1 2 3 4 5; do
+            echo "SCP 上传尝试 $i/5 ..."
+            if scp -i ~/.ssh/id_rsa \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=60 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=3 \
+              dist.tar.gz "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/dist.tar.gz"; then
+              echo "SCP 上传成功，校验远端文件..."
+              if ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "test -s /tmp/dist.tar.gz"; then
+                echo "远端文件存在且非空"
+                exit 0
+              fi
+              echo "远端文件校验失败，将重试上传..."
+            fi
+            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
+          done
+          echo "::error::SCP 上传或远端校验 5 次均失败（网络抖动时可重跑 workflow）"
+          exit 1
 
       - name: 解压 dist 文件并部署到 ECS（并安装/配置 Nginx 与 Node.js）
         run: |
