@@ -107,6 +107,13 @@ jobs:
       - name: 压缩 dist 目录
         run: tar -czf dist.tar.gz dist/
 
+      - name: 上传构建产物（dist.tar.gz）
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-tar
+          path: dist.tar.gz
+          if-no-files-found: error
+
       - name: 准备 SSH 私钥文件
         env:
           SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
@@ -175,6 +182,11 @@ jobs:
         (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'mac'))
 
     steps:
+      - name: 下载构建产物（dist.tar.gz）
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-tar
+
       - name: 配置 SSH
         run: |
           mkdir -p ~/.ssh
@@ -182,6 +194,15 @@ jobs:
           echo >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+
+      - name: 上传 dist.tar.gz 到 ECS
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=60 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=3 \
+            dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/dist.tar.gz
 
       - name: 解压 dist 文件并部署到 ECS   
         run: |
