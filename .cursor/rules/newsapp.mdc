@@ -1,0 +1,38 @@
+---
+description: NewsApp 项目默认规则：理解结构与实现方式（优先依据根目录文档）
+globs:
+  - "src/**"
+  - "server/**"
+  - "vite.config.ts"
+  - "tailwind.config.js"
+  - "index.html"
+  - "README.md"
+  - "NEWSAPP_CURSOR_DOC.md"
+  - "package.json"
+alwaysApply: true
+---
+
+- 当你需要理解/解析本仓库时，优先以根目录的 `NEWSAPP_CURSOR_DOC.md` 为第一真源；如与代码冲突，必须指出冲突并给出以代码为准的结论（同时附上应检查的文件路径）。
+- 做功能修改或实现建议时，请按层级工作流组织答案：路由（`src/router/modules/*`）-> 页面（`src/views/*`）-> 状态（`src/store/*`）-> 接口（`src/api/*`）-> 请求封装（`src/utils/request.js`）-> UI 能力（`src/libs/*`）/ 指令（`src/derectives/*`）/ 后端（`server/*`）。
+- 鉴权规则：带 `meta.user: true` 的路由由 `src/permission.js` 控制；token 存取来自 Vuex 的 `src/store/getters.js`。
+- 请求返回约定：`src/utils/request.js` 期望 `{ msg, result }`，其中 `msg === 'ok'` 才返回 `result`；401 触发 `user/logout`。
+- 全局组件注册约定：`src/libs/index.js` 会自动注册 `src/libs/<name>/index.vue` 为全局组件 `m-<name>`（按此方式新增/复用 UI 能力）。
+- 面试/汇报类文档输出规范：当用户要求生成 `answer.md`（根目录）中的面试说辞时，需按“遇到的问题 -> 选择方案的抉择 -> 为什么选择 -> 该方案的用法 -> 带来的收益 -> 反向观看（相对其他方案的优缺点）”组织每一条要点；输出语言默认中文。
+- 文档优先级：生成 `answer.md` 时优先对照根目录 `NEWSAPP_CURSOR_DOC.md`，并在说辞中点名对应的真实实现文件/模块路径（例如 `src/router/modules/*`、`src/views/*`、`src/libs/*`、`src/derectives/*`、`src/utils/*`、`server/*`）。
+- 写作参考提示词（原样保留，用作生成 `answer.md` 时的主题/要点来源）：
+```text
+我说的是所有Vue3 Vite TailwindCSS Vueuse  VeeValidate GSAP Cropperjs ali-oss deiver.js
+项目介绍：集42种前台业务模型的实现方案、15种中台通用组件的物料库于一身的通用型项目
+难点和亮点：
+● 基于 Vite 配置⽅案，通过多套路由表配置、SVG 图标⾃动化注册及通⽤组件与指令⾃动化注册
+● 物料库 16 个通⽤组件，包括 Infinite、Waterfall、Popup、Popover、Confirm、Dialog、Countdown 等
+● 针对网站瀑布流卡顿、图片加载慢等问题，首屏采用瀑布流长列表组合懒加载并辅以渐进式图片展示，正常浏览堆内存同比减少35%，平均FCP 时间减少至 1 s，Lighthouse 分数同比增加33%分达到中上水平
+● 实现完整的登录架构，包含 SliderCaptcha ⼈类⾏为验证模块，结合 VeeValidate ⾃定义表单验证，以及登录鉴权
+● 使用 Cropperjs 并针对PC和移动端差异，对用户头像使用多方式裁切，上传阿里云OSS 并更新用户头像
+● 移动端路由切换使⽤路由动效，通过创建虚拟任务栈缓存⻚⾯并记录滚动位置，确保了 H5 ⻚⾯切换过程丝滑
+● 第三方模块，支持QQ、微信扫码登录，支付宝PC端扫码和移动端调起支付，微博平台分享，兔小巢用户反馈
+● 特别功能，包含系统明暗主题切换、新手引导、文件下载，指定 DOM 的全屏处理、动画处理GSAP 等
+● CICD流水线双方案实现，传统scp推送压缩包方式以及docker容器仓库方式
+这个promot整体原样不动的添加到rule的参考规范中
+```
+

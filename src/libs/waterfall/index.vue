@@ -184,6 +184,37 @@
     }
 
     /**
+     * 重排：清空旧定位并重新计算高度与位置
+     */
+    const relayout = () => {
+      useColumnHeightObj()
+      props.data.forEach((item) => {
+        item._style = null
+      })
+      nextTick(() => {
+        if (props.picturePreReading) {
+          waitImgComplate()
+        } else {
+          useItemHeight()
+        }
+      })
+    }
+
+    /**
+     * 监听图片加载，处理懒加载后高度变化引发的重叠
+     */
+    const bindImgLoadReflow = () => {
+      const itemElements = [...document.getElementsByClassName('m-waterfull-item')]
+      const imgElements = getImgElements(itemElements)
+      imgElements.forEach((img) => {
+        if (img.dataset.reflowBound === 'true') return
+        img.dataset.reflowBound = 'true'
+        img.addEventListener('load', relayout)
+        img.addEventListener('error', relayout)
+      })
+    }
+
+    /**
      * 获取下个 item 项的 left 值，等于最小高度所在列 * (列间距 + 列宽)
      */
     const getItemLeft = () => {
@@ -228,14 +259,11 @@
     }
     // 触发计算
     watch(
-      ()=>props.data,
+      () => props.data.length,
       (newVal) => {
         console.log("数据触发了更新");
-        // 如果数组每一个都没有._style，则重新构建容器
-        const resetColumnHeight = newVal.every((item) => !item._style)
-        if (resetColumnHeight) {
-          useColumnHeightObj() 
-        }
+        // 当列表长度变化时重置列高，避免旧状态影响
+        useColumnHeightObj()
         nextTick(() => {// 将计算操作添加到微队列中--需要注意的是watch回调的内容本身也是微队列，此处还使用一次nextTick包裹内容进行微队列的加入的含义在于：
           //   //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
           if (props.picturePreReading) {
@@ -243,12 +271,12 @@
             waitImgComplate()
           } else {
             useItemHeight()
+            bindImgLoadReflow()
           }
         })
       },
       {
-        deep:true,
-        //需要注意此处的deep的配置项产生地狱的原因来源于nextTick的
+        // 仅监听长度变化，避免 _style 变动引发重复重排
         immediate:true
         //需要注意此处的immediate配置项,
         //immediate: true 被注释掉了，这意味着：
@@ -264,10 +292,7 @@
     (newVal)=>{
       // 重新计算列宽
       useColumnWidth()
-      // 重置所有定位数据记录
-      props.data.forEach((item) => {
-        item._style = null
-      })
+      relayout()
     })
 
 </script>
