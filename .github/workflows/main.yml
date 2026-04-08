@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master 
+      - mac
     paths-ignore:
       - '**.md'
       - '.gitignore'
@@ -17,6 +18,7 @@ on:
     branches:
       - main
       - master
+      - mac
   workflow_dispatch: # 允许手动触发
 
 env:
@@ -64,12 +66,12 @@ jobs:
     # 2) workflow_dispatch 手动触发
     # 3) PR 已合并（closed + merged=true）到 main/master
     if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')) ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
         github.event.action == 'closed' &&
         github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master'))
+        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'mac'))
 
     steps:
       - name: 检出代码
@@ -165,20 +167,21 @@ jobs:
     runs-on: ubuntu-latest
     # 与 build_and_compress 保持一致。
     if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')) ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
         github.event.action == 'closed' &&
         github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master'))
+        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'mac'))
 
     steps:
       - name: 配置 SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ECS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s' "${{ secrets.ECS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
 
       - name: 解压 dist 文件并部署到 ECS   
         run: |
