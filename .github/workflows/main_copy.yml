@@ -201,6 +201,9 @@ jobs:
           if [ -f /etc/nginx/conf.d/newsapp.conf ] && [ "$NGINX_CONF_PATH" != "/etc/nginx/conf.d/newsapp.conf" ]; then
             rm -f /etc/nginx/conf.d/newsapp.conf
           fi
+          # 清理常见默认配置，避免与当前站点冲突（不同发行版路径不同）
+          rm -f /etc/nginx/conf.d/default.conf 2>/dev/null || true
+          rm -f /etc/nginx/sites-available/default 2>/dev/null || true
 
           echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...'
           chown -R "$USER:$USER" "$DEPLOY_DIR"
@@ -210,14 +213,27 @@ jobs:
           nginx -t
           if command -v systemctl >/dev/null 2>&1; then
             if systemctl is-active --quiet nginx; then
-              systemctl reload nginx || systemctl restart nginx
+              if ! (systemctl reload nginx || systemctl restart nginx); then
+                echo "Nginx reload/restart 失败，输出诊断信息："
+                systemctl status nginx --no-pager || true
+                journalctl -u nginx -n 120 --no-pager || true
+                journalctl -xe --no-pager | tail -n 120 || true
+                exit 1
+              fi
             else
-              systemctl start nginx
+              if ! systemctl start nginx; then
+                echo "Nginx start 失败，输出诊断信息："
+                systemctl status nginx --no-pager || true
+                journalctl -u nginx -n 120 --no-pager || true
+                journalctl -xe --no-pager | tail -n 120 || true
+                exit 1
+              fi
             fi
             if ! systemctl is-active --quiet nginx; then
               echo "Nginx 启动失败，输出诊断信息："
               systemctl status nginx --no-pager || true
               journalctl -u nginx -n 120 --no-pager || true
+              journalctl -xe --no-pager | tail -n 120 || true
               exit 1
             fi
           else
