@@ -211,6 +211,31 @@ jobs:
 
           echo '5) 检查 Nginx 配置并重载服务...'
           nginx -t
+          echo '5.1) 启动前检查并释放 80 端口占用...'
+          if command -v ss >/dev/null 2>&1; then
+            ss -ltnp | awk 'NR==1 || /:80[[:space:]]/' || true
+          fi
+          # 常见冲突来源：旧 Docker 容器占用宿主机 80 端口
+          if command -v docker >/dev/null 2>&1; then
+            PORT80_CONTAINERS="$(docker ps --format '{{.ID}} {{.Names}} {{.Ports}}' | awk '/(^|,| )0\.0\.0\.0:80->|:::80->|:80->/ {print $1}')"
+            if [ -n "$PORT80_CONTAINERS" ]; then
+              echo "发现 Docker 容器占用 80 端口，尝试停止并删除：$PORT80_CONTAINERS"
+              for cid in $PORT80_CONTAINERS; do
+                docker rm -f "$cid" || true
+              done
+            fi
+          fi
+          # 兜底：尝试停止常见 Web 服务，避免与 nginx 争抢 80 端口
+          if command -v systemctl >/dev/null 2>&1; then
+            for svc in apache2 httpd caddy; do
+              systemctl stop "$svc" 2>/dev/null || true
+              systemctl disable "$svc" 2>/dev/null || true
+            done
+          fi
+          if command -v ss >/dev/null 2>&1; then
+            echo "端口 80 当前监听情况（清理后）："
+            ss -ltnp | awk 'NR==1 || /:80[[:space:]]/' || true
+          fi
           if command -v systemctl >/dev/null 2>&1; then
             if systemctl is-active --quiet nginx; then
               if ! (systemctl reload nginx || systemctl restart nginx); then
