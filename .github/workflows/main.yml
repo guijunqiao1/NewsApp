@@ -1,29 +1,25 @@
 name: CI/CD Pipeline
 
-on:
+"on":
   push:
     branches:
       - main
-      - master 
-      - mac
+      - master
     paths-ignore:
-      - '**.md'
+      - '**/*.md'
       - '.gitignore'
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - closed
     branches:
       - main
       - master
-      - mac
   workflow_dispatch: # 允许手动触发
 
 env:
-  NODE_VERSION: '20.x'
-  DEPLOY_DIR: '/var/www/newsapp'  # 在 ECS 上的目标目录
+  NODE_VERSION: '20'
+  # 容器内静态文件目录（与官方 nginx 镜像默认目录一致）
+  NGINX_HTML_DIR: '/usr/share/nginx/html'
+  # Docker 容器/镜像相关命名（ECS 上容器会以该名称运行）
+  APP_NAME: 'newsapp'
 
 jobs:
   # 1. 代码测试
@@ -49,40 +45,34 @@ jobs:
       
       - name: 运行单元测试
         run: npm run test
-        continue-on-error: true
       
       - name: 构建前端项目（验证构建）
         run: npm run build
 
-  # 2. 构建并压缩 dist 文件
-  # 部署依赖仓库 Secrets：ECS_HOST、ECS_USER、ECS_SSH_PRIVATE_KEY
-  # 配置路径：GitHub 仓库 → Settings → Secrets and variables → Actions
-  build_and_compress:
-    name: 构建并压缩 dist 文件
+  # 2. 构建 nginx Docker 镜像并推送到 TCR
+  # 依赖 Secrets（ECS）：ECS_HOST、ECS_USER、ECS_SSH_PRIVATE_KEY
+  # 依赖 Secrets（TCR）：TCR_REGISTRY、TCR_NAMESPACE、TCR_REPOSITORY、TCR_USERNAME、TCR_PASSWORD
+  build_and_push_image:
+    name: 构建并推送镜像到 TCR
     needs: test
     runs-on: ubuntu-latest
-    # 在以下场景进行构建产物和部署准备：
-    # 1) push 到 main/master
-    # 2) workflow_dispatch 手动触发
-    # 3) PR 已合并（closed + merged=true）到 main/master
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')) ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-        github.event.action == 'closed' &&
-        github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'mac'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-
+ 
       - name: 检查部署所需 Secrets
         run: |
           missing=""
           [ -z "${{ secrets.ECS_HOST }}" ] && missing="${missing} ECS_HOST"
           [ -z "${{ secrets.ECS_USER }}" ] && missing="${missing} ECS_USER"
           [ -z "${{ secrets.ECS_SSH_PRIVATE_KEY }}" ] && missing="${missing} ECS_SSH_PRIVATE_KEY"
+          [ -z "${{ secrets.TCR_REGISTRY }}" ] && missing="${missing} TCR_REGISTRY"
+          [ -z "${{ secrets.TCR_NAMESPACE }}" ] && missing="${missing} TCR_NAMESPACE"
+          [ -z "${{ secrets.TCR_REPOSITORY }}" ] && missing="${missing} TCR_REPOSITORY"
+          [ -z "${{ secrets.TCR_USERNAME }}" ] && missing="${missing} TCR_USERNAME"
+          [ -z "${{ secrets.TCR_PASSWORD }}" ] && missing="${missing} TCR_PASSWORD"
           if [ -n "${missing}" ]; then
             echo "::error::以下 Secrets 未配置，无法连接 ECS：${missing}"
             echo "::error::请到 仓库 Settings → Secrets and variables → Actions 添加对应项。"
@@ -90,130 +80,176 @@ jobs:
             exit 1
           fi
       
-      - name: 设置 Node.js
-        uses: actions/setup-node@v4
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录 TCR
+        uses: docker/login-action@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          registry: ${{ secrets.TCR_REGISTRY }}
+          username: ${{ secrets.TCR_USERNAME }}
+          password: ${{ secrets.TCR_PASSWORD }}
+          logout: true
 
-      - name: 安装依赖
-        run: npm ci
-      
-      - name: 安装 rolldown 原生绑定
-        run: npm install @rolldown/binding-linux-x64-gnu --no-save || true
-
-      - name: 构建前端项目（生成 dist 文件夹）
-        run: npm run build
-      
-      - name: 压缩 dist 目录
-        run: tar -czf dist.tar.gz dist/
-
-      - name: 上传构建产物（dist.tar.gz）
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-tar
-          path: dist.tar.gz
-          if-no-files-found: error
-
-      - name: 准备 SSH 私钥文件
-        env:
-          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+      - name: 生成镜像标签
+        id: meta
         run: |
-          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > deploy_key
-          echo >> deploy_key
-          chmod 644 deploy_key
-          if ! grep -q "BEGIN.*PRIVATE KEY" deploy_key; then
-            echo "::error::私钥格式错误：缺少 BEGIN 标记"
-            exit 1
-          fi
-          if ! grep -q "END.*PRIVATE KEY" deploy_key; then
-            echo "::error::私钥格式错误：缺少 END 标记。请确认 GitHub Secret ECS_SSH_PRIVATE_KEY 为完整私钥，包含整行 -----END OPENSSH PRIVATE KEY----- 或 -----END RSA PRIVATE KEY-----，复制时勿遗漏。"
-            exit 1
-          fi
-          echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
+          # 规范化：防止 secrets 里误填入多段路径（例如把 namespace/repo 填进了某一项）
+          REG="${{ secrets.TCR_REGISTRY }}"
+          NS="${{ secrets.TCR_NAMESPACE }}"
+          REPO="${{ secrets.TCR_REPOSITORY }}"
 
-      - name: 上传 dist 文件到 ECS（含重试）
-        env:
-          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+          # 去掉可能的协议头与尾部斜杠
+          REG="${REG#http://}"
+          REG="${REG#https://}"
+          REG="${REG%/}"
+          # 如果 REG 被误填成带路径（例如 ccr.ccs.tencentyun.com/xxx），只保留主机名
+          REG="${REG%%/*}"
+
+          # 如果 NS/REPO 被误填成带路径，取最后一段
+          NS="${NS##*/}"
+          REPO="${REPO##*/}"
+
+          if [ -z "$NS" ] || [ -z "$REPO" ]; then
+            echo "::error::TCR_NAMESPACE 或 TCR_REPOSITORY 为空（或格式不正确）。"
+            exit 1
+          fi
+
+          IMAGE="${REG}/${NS}/${REPO}"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "tag_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "tag_latest=latest" >> "$GITHUB_OUTPUT"
+
+      - name: 构建并推送镜像（含 latest 与 commit sha）
         run: |
-          mkdir -p ~/.ssh
-          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
-          echo >> ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+          docker build \
+            --pull \
+            --build-arg NODE_VERSION="${{ env.NODE_VERSION }}" \
+            --build-arg NGINX_HTML_DIR="${{ env.NGINX_HTML_DIR }}" \
+            -t "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag_sha }}" \
+            -t "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag_latest }}" \
+            .
+          docker push "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag_sha }}"
+          docker push "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag_latest }}"
 
-          echo "先校验 SSH 登录…"
-          if ! ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
-            ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo ok"; then
-            echo "::error::SSH 登录失败（Connection closed 常见原因）："
-            echo "::error::1. 认证：ECS authorized_keys 中公钥须与 ECS_SSH_PRIVATE_KEY 对应，ECS_USER 正确"
-            echo "::error::2. ECS 若启用 fail2ban：频繁连接可能封禁 GitHub IP，需在 ECS 上 unban 或放宽规则"
-            echo "::error::3. 防火墙/安全组：放行 22，且未对海外 IP 做限制"
-            exit 1
-          fi
-
-          for i in 1 2 3; do
-            echo "SCP 上传尝试 $i/3 …"
-            if scp -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=60 \
-              -o ServerAliveInterval=15 \
-              -o ServerAliveCountMax=3 \
-              dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/; then
-              echo "SCP 上传成功"
-              exit 0
-            fi
-            [ $i -lt 3 ] && echo "等待 30s 后重试…" && sleep 30
-          done
-          echo "::error::SCP 上传 3 次均失败。若为 Connection closed，请检查 ECS fail2ban、防火墙及认证配置后重跑 workflow。"
-          exit 1
+      - name: 写出部署信息（供后续 job 使用）
+        run: |
+          echo "IMAGE=${{ steps.meta.outputs.image }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ steps.meta.outputs.tag_sha }}" >> $GITHUB_ENV
 
   # 3. 部署到 ECS
   deploy:
-    name: 部署到 ECS
-    needs: build_and_compress
+    name: 部署到 ECS   
+    needs: build_and_push_image
     runs-on: ubuntu-latest
-    # 与 build_and_compress 保持一致。
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')) ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-        github.event.action == 'closed' &&
-        github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'master' || github.event.pull_request.base.ref == 'mac'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
     steps:
-      - name: 下载构建产物（dist.tar.gz）
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-tar
-
       - name: 配置 SSH
         run: |
           mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.ECS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          printf '%s' "${{ secrets.ECS_SSH_PRIVATE_KEY }}" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/id_rsa
           echo >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
 
-      - name: 上传 dist.tar.gz 到 ECS
+      - name: 在 ECS 上安装/配置 Docker，登录 TCR，拉取并启动 nginx 容器
         run: |
-          scp -i ~/.ssh/id_rsa \
-            -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=60 \
-            -o ServerAliveInterval=15 \
-            -o ServerAliveCountMax=3 \
-            dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/dist.tar.gz
+          REG="${{ secrets.TCR_REGISTRY }}"
+          NS="${{ secrets.TCR_NAMESPACE }}"
+          REPO="${{ secrets.TCR_REPOSITORY }}"
+          REG="${REG#http://}"; REG="${REG#https://}"; REG="${REG%/}"; REG="${REG%%/*}"
+          NS="${NS##*/}"; REPO="${REPO##*/}"
+          IMAGE="${REG}/${NS}/${REPO}"
+          IMAGE_TAG="${GITHUB_SHA}"
+          CONTAINER_NAME="${{ env.APP_NAME }}-nginx"
 
-      - name: 解压 dist 文件并部署到 ECS   
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" \
+            "IMAGE='$IMAGE' IMAGE_TAG='$IMAGE_TAG' CONTAINER_NAME='$CONTAINER_NAME' \
+             TCR_REGISTRY='${{ secrets.TCR_REGISTRY }}' TCR_USERNAME='${{ secrets.TCR_USERNAME }}' TCR_PASSWORD='${{ secrets.TCR_PASSWORD }}' \
+             bash -se" <<'REMOTE'
+          set -e
+          echo '1) 确保 Docker 已安装并启动...'
+          if ! command -v docker >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then 
+              apt-get update -y
+              apt-get install -y ca-certificates curl gnupg
+              curl -fsSL https://get.docker.com | sh
+            else
+              echo '当前系统无法自动安装 Docker（缺少 apt-get）。请手动安装 Docker。'
+              exit 1
+            fi
+          fi
+
+          if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable docker || true
+            systemctl restart docker || systemctl start docker
+          else
+            service docker restart || service docker start || true
+          fi
+          docker version
+
+          echo '2) 如宿主机 nginx 占用 80，则停止（避免与容器端口冲突）...'
+          if command -v systemctl >/dev/null 2>&1; then
+            systemctl stop nginx 2>/dev/null || true
+            systemctl disable nginx 2>/dev/null || true
+          else
+            service nginx stop 2>/dev/null || true
+          fi
+
+          echo '3) 登录 TCR（在 ECS 上执行 docker login）...'
+          echo "$TCR_PASSWORD" | docker login "$TCR_REGISTRY" -u "$TCR_USERNAME" --password-stdin
+
+          echo '4) 拉取新镜像...'
+          docker pull "${IMAGE}:${IMAGE_TAG}"
+
+          echo '5) 以滚动方式替换容器...'
+          if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            docker rm -f "${CONTAINER_NAME}" || true
+          fi
+
+          docker run -d \
+            --name "${CONTAINER_NAME}" \
+            --restart unless-stopped \
+            -p 80:80 \
+            "${IMAGE}:${IMAGE_TAG}"
+
+          echo '6) 容器内 Nginx 配置自检...'
+          docker exec "${CONTAINER_NAME}" nginx -t
+          REMOTE
+
+      - name: 健康检查 
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} " \
-            tar -xzf /tmp/dist.tar.gz -C /tmp && \
-            rm -rf ${{ env.DEPLOY_DIR }}/* && \
-            mv /tmp/dist/* ${{ env.DEPLOY_DIR }}/ && \
-            rm -rf /tmp/dist.tar.gz /tmp/dist \
-          "
-
-      - name: 健康检查
-        run: | 
+          echo "等待服务启动..."
           sleep 10
-          curl -f http://${{ secrets.ECS_HOST }}/ || exit 1
+
+          echo "1) 先在 ECS 本机检查（127.0.0.1）"
+          ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "bash -se" <<'REMOTE'
+          set -e
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 http://127.0.0.1/ >/dev/null; then
+              echo "ECS 本机健康检查通过"
+              exit 0
+            fi
+            echo "ECS 本机未就绪，等待 5s 重试（$i/6）..."
+            sleep 5
+          done
+          echo "ECS 本机健康检查失败：请在 ECS 上检查容器日志（docker logs）与容器状态（docker ps）"
+          exit 1
+          REMOTE
+
+          echo "2) 再从 GitHub Runner 检查公网可达性 http://${{ secrets.ECS_HOST }}/"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --retry 0 \
+              http://${{ secrets.ECS_HOST }}/ >/dev/null; then
+              echo "公网健康检查通过"
+              exit 0
+            fi
+            echo "公网检查超时/失败，等待 10s 重试（$i/6）..."
+            sleep 10
+          done
+          echo "::error::公网健康检查失败：大概率是安全组/防火墙未放行 80，或 ECS_HOST 不可从公网访问。"
+          exit 1
