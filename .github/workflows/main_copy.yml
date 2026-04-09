@@ -5,6 +5,7 @@ name: CI/CD Pipeline
     branches:
       - main
       - master
+      - mac
     paths-ignore:
       - '**/*.md'
       - '.gitignore'
@@ -12,6 +13,7 @@ name: CI/CD Pipeline
     branches:
       - main
       - master
+      - mac
   workflow_dispatch: # 允许手动触发
 
 env:
@@ -53,7 +55,7 @@ jobs:
     name: 构建并压缩 dist 文件
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')
 
     steps:
       - name: 检出代码
@@ -90,25 +92,67 @@ jobs:
       - name: 压缩 dist 目录
         run: tar -czf dist.tar.gz dist/
 
-      - name: 保存构建产物（供 deploy job 使用）
+      - name: 上传构建产物（dist.tar.gz）
         uses: actions/upload-artifact@v4
         with:
-          name: dist-tarball
+          name: dist-tar
           path: dist.tar.gz
           if-no-files-found: error
+
+      - name: 准备 SSH 私钥文件
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > deploy_key
+          echo >> deploy_key
+          chmod 600 deploy_key
+          if ! grep -q "BEGIN.*PRIVATE KEY" deploy_key; then
+            echo "::error::私钥格式错误：缺少 BEGIN 标记"
+            exit 1
+          fi
+          if ! grep -q "END.*PRIVATE KEY" deploy_key; then
+            echo "::error::私钥格式错误：缺少 END 标记。请确认 GitHub Secret ECS_SSH_PRIVATE_KEY 为完整私钥，包含整行 -----END OPENSSH PRIVATE KEY----- 或 -----END RSA PRIVATE KEY-----，复制时勿遗漏。"
+            exit 1
+          fi
+          echo "私钥格式检查通过，行数: $(wc -l < deploy_key)"
+
+      - name: 上传 dist 文件到 ECS（含重试）
+        env:
+          SSH_KEY: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+        run: |  
+          mkdir -p ~/.ssh
+          printf '%s' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/deploy_key
+          echo >> ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+          for i in 1 2 3 4 5; do
+            echo "SCP 上传尝试 $i/5 ..."
+            if scp -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=60 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=3 \
+              dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/; then
+              echo "SCP 上传成功"
+              exit 0
+            fi
+            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
+          done
+          echo "::error::SCP 上传 5 次均失败（handshake EOF 多为网络抖动，可重跑 workflow）"
+          exit 1
 
   # 3. 部署到 ECS
   deploy:
     name: 部署到 ECS   
     needs: build_and_compress
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/mac')
 
     steps:
-      - name: 下载构建产物
+      - name: 下载构建产物（dist.tar.gz）
         uses: actions/download-artifact@v4
         with:
-          name: dist-tarball
+          name: dist-tar
 
       - name: 配置 SSH
         run: |
@@ -118,50 +162,38 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
 
-      - name: 上传 dist 文件到 ECS（含重试与落盘校验）
+      - name: 上传 dist.tar.gz 到 ECS
         run: |
-          if [ ! -f dist.tar.gz ]; then
-            echo "::error::未找到 dist.tar.gz，artifact 下载异常。"
-            exit 1
-          fi
-          for i in 1 2 3 4 5; do
-            echo "SCP 上传尝试 $i/5 ..."
-            if scp -i ~/.ssh/id_rsa \
-              -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=60 \
-              -o ServerAliveInterval=15 \
-              -o ServerAliveCountMax=3 \
-              dist.tar.gz "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/dist.tar.gz"; then
-              echo "SCP 上传成功，校验远端文件..."
-              if ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "test -s /tmp/dist.tar.gz"; then
-                echo "远端文件存在且非空"
-                exit 0
-              fi
-              echo "远端文件校验失败，将重试上传..."
-            fi
-            [ $i -lt 5 ] && echo "等待 10s 后重试..." && sleep 10
-          done
-          echo "::error::SCP 上传或远端校验 5 次均失败（网络抖动时可重跑 workflow）"
-          exit 1
+          scp -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=60 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=3 \
+            dist.tar.gz ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/tmp/dist.tar.gz
 
       - name: 解压 dist 文件并部署到 ECS（并安装/配置 Nginx 与 Node.js）
         run: |
           DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
           ssh -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" "DEPLOY_DIR='$DEPLOY_DIR' bash -se" <<'REMOTE'
           set -e
+          
+          SUDO=""
+          if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+            SUDO="sudo"
+          fi
 
           echo '1) 解压最新前端构建包...'
           tar -xzf /tmp/dist.tar.gz -C /tmp
-          mkdir -p "$DEPLOY_DIR"
-          rm -rf "$DEPLOY_DIR"/*
-          cp -a /tmp/dist/. "$DEPLOY_DIR"/
+          $SUDO mkdir -p "$DEPLOY_DIR"
+          $SUDO rm -rf "$DEPLOY_DIR"/*
+          $SUDO cp -a /tmp/dist/. "$DEPLOY_DIR"/
           rm -rf /tmp/dist.tar.gz /tmp/dist
 
           echo '2) 安装并配置 Nginx（如未安装）...'
           if ! command -v nginx >/dev/null 2>&1; then
             if command -v apt-get >/dev/null 2>&1; then
-              apt-get update -y
-              apt-get install -y nginx
+              $SUDO apt-get update -y
+              $SUDO apt-get install -y nginx
             else
               echo '当前系统非 Debian/Ubuntu，无法自动使用 apt-get 安装 nginx，请手动安装。'
               exit 1
@@ -170,20 +202,20 @@ jobs:
 
           echo '3) 生成/更新 Nginx 配置 /etc/nginx/sites-available/newsapp.conf ...'
           if [ -d /etc/nginx/sites-available ] || [ -d /etc/nginx/sites-enabled ]; then
-            mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+            $SUDO mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
             NGINX_CONF_PATH=/etc/nginx/sites-available/newsapp.conf
             NGINX_LINK_PATH=/etc/nginx/sites-enabled/newsapp.conf
           else
-            mkdir -p /etc/nginx/conf.d
+            $SUDO mkdir -p /etc/nginx/conf.d
             NGINX_CONF_PATH=/etc/nginx/conf.d/newsapp.conf
             NGINX_LINK_PATH=
           fi
 
-          cat >"$NGINX_CONF_PATH" <<'NGINX_CONF'
+          $SUDO tee "$NGINX_CONF_PATH" >/dev/null <<'NGINX_CONF'
           server {
               listen 80;
               listen [::]:80;
-              server_name _;
+              server_name __SERVER_NAME__;
               root __DEPLOY_DIR__;
               index index.html;
               location / {
@@ -191,11 +223,12 @@ jobs:
               }
           }
           NGINX_CONF
-          sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" "$NGINX_CONF_PATH"
+          $SUDO sed -i "s|__DEPLOY_DIR__|$DEPLOY_DIR|g" "$NGINX_CONF_PATH"
+          $SUDO sed -i "s|__SERVER_NAME__|${HOSTNAME:-_}|g" "$NGINX_CONF_PATH"
 
           if [ -n "$NGINX_LINK_PATH" ]; then
-            ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
-            if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi
+            $SUDO ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
+            if [ -f /etc/nginx/sites-enabled/default ]; then $SUDO rm -f /etc/nginx/sites-enabled/default; fi
           fi
           # 避免历史残留配置造成重复 server 块冲突（例如 /etc/nginx/conf.d/newsapp.conf）
           if [ -f /etc/nginx/conf.d/newsapp.conf ] && [ "$NGINX_CONF_PATH" != "/etc/nginx/conf.d/newsapp.conf" ]; then
@@ -206,64 +239,30 @@ jobs:
           rm -f /etc/nginx/sites-available/default 2>/dev/null || true
 
           echo '4) 调整前端目录权限（仅限当前用户可写，Nginx 可读）...'
-          chown -R "$USER:$USER" "$DEPLOY_DIR"
-          chmod -R 755 "$DEPLOY_DIR"
+          $SUDO chown -R "$USER:$USER" "$DEPLOY_DIR" || true
+          $SUDO chmod -R 755 "$DEPLOY_DIR"
 
           echo '5) 检查 Nginx 配置并重载服务...'
-          nginx -t
-          echo '5.1) 启动前检查并释放 80 端口占用...'
-          if command -v ss >/dev/null 2>&1; then
-            ss -ltnp | awk 'NR==1 || /:80[[:space:]]/' || true
-          fi
-          # 常见冲突来源：旧 Docker 容器占用宿主机 80 端口
-          if command -v docker >/dev/null 2>&1; then
-            PORT80_CONTAINERS="$(docker ps --format '{{.ID}} {{.Names}} {{.Ports}}' | awk '/(^|,| )0\.0\.0\.0:80->|:::80->|:80->/ {print $1}')"
-            if [ -n "$PORT80_CONTAINERS" ]; then
-              echo "发现 Docker 容器占用 80 端口，尝试停止并删除：$PORT80_CONTAINERS"
-              for cid in $PORT80_CONTAINERS; do
-                docker rm -f "$cid" || true
-              done
-            fi
-          fi
-          # 兜底：尝试停止常见 Web 服务，避免与 nginx 争抢 80 端口
+          $SUDO nginx -t
+          set +e
           if command -v systemctl >/dev/null 2>&1; then
-            for svc in apache2 httpd caddy; do
-              systemctl stop "$svc" 2>/dev/null || true
-              systemctl disable "$svc" 2>/dev/null || true
-            done
-          fi
-          if command -v ss >/dev/null 2>&1; then
-            echo "端口 80 当前监听情况（清理后）："
-            ss -ltnp | awk 'NR==1 || /:80[[:space:]]/' || true
-          fi
-          if command -v systemctl >/dev/null 2>&1; then
-            if systemctl is-active --quiet nginx; then
-              if ! (systemctl reload nginx || systemctl restart nginx); then
-                echo "Nginx reload/restart 失败，输出诊断信息："
-                systemctl status nginx --no-pager || true
-                journalctl -u nginx -n 120 --no-pager || true
-                journalctl -xe --no-pager | tail -n 120 || true
-                exit 1
-              fi
-            else
-              if ! systemctl start nginx; then
-                echo "Nginx start 失败，输出诊断信息："
-                systemctl status nginx --no-pager || true
-                journalctl -u nginx -n 120 --no-pager || true
-                journalctl -xe --no-pager | tail -n 120 || true
-                exit 1
-              fi
-            fi
-            if ! systemctl is-active --quiet nginx; then
-              echo "Nginx 启动失败，输出诊断信息："
-              systemctl status nginx --no-pager || true
-              journalctl -u nginx -n 120 --no-pager || true
-              journalctl -xe --no-pager | tail -n 120 || true
-              exit 1
+            $SUDO systemctl reload nginx 2>/dev/null || $SUDO systemctl restart nginx
+            rc=$?
+            if [ $rc -ne 0 ]; then
+              echo "Nginx reload/restart 失败，输出诊断信息："
+              $SUDO systemctl status nginx --no-pager -l || true
+              $SUDO journalctl -u nginx --no-pager -n 200 || true
+              exit $rc
             fi
           else
-            service nginx restart || service nginx start || nginx -s reload
+            $SUDO service nginx reload || $SUDO service nginx restart || $SUDO nginx -s reload
+            rc=$?
+            if [ $rc -ne 0 ]; then
+              echo "Nginx reload/restart 失败（无 systemctl），请手动检查 nginx error_log。"
+              exit $rc
+            fi
           fi
+          set -e
           REMOTE
 
       - name: 健康检查 
