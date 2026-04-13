@@ -30,7 +30,7 @@
       >
         {{ item.name }}
       </li>
-    </ul>
+    </ul> 
   </div>
 </template>
 
