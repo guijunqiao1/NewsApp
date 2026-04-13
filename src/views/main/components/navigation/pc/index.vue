@@ -19,7 +19,7 @@
       <!-- item -->
       <li
         v-for="(item,index) in store.getters.categorys"
-        :key="item"
+        :key="item.id"
         class="shrink-0 px-1.5 py-1 z-10 ml-[14px] duration-200 mt-1 font-bold rounded cursor-pointer text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         :class="[
           index === currentCategoryIndex
@@ -35,12 +35,13 @@
 </template>
 
 <script setup> 
-  import { nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+  import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
   import { useStore } from 'vuex'
 
   const store = useStore()
 
   const categoryListRef = ref(null)
+  const currentCategoryIndex = computed(() => store.getters.currentCategoryIndex)
 
   // 收起高度（保持与原来 h-[70px] 一致）
   const COLLAPSED_HEIGHT = 70
