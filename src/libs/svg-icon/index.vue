@@ -1,5 +1,5 @@
 <template>
-  <svg aria-hidden="true">
+  <svg class="m-svg-icon" aria-hidden="true">
     <use :href="symbolId" :class="fillClass" :fill="color"/>
   </svg>
 </template>
@@ -38,8 +38,8 @@
 
 </script>
 
-<style lang="scss" scoped>
-svg {
+<style lang="scss">
+:where(.m-svg-icon) {
   width: 1em;
   height: 1em;
   display: inline-block;
