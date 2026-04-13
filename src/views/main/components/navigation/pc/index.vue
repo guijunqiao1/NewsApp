@@ -1,8 +1,9 @@
 <template>
   <div class="bg-white dark:bg-zinc-800 sticky top-0 left-0 w-full z-10 duration-500">
     <ul
+      ref="categoryListRef"
       class="w-[910px] m-auto relative flex flex-wrap content-start px-[10px] py-1 text-base duration-300 overflow-hidden"
-      :class="[isOpenCategory ? 'h-[230px]' : 'h-[70px]']"
+      :style="{ height: `${containerHeight}px` }"
     >
       <!-- 右边箭头 -->
       <div
@@ -33,14 +34,20 @@
   </div>
 </template>
 
-<script setup>
-  import { ref } from 'vue'
+<script setup> 
+  import { nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
   import { useStore } from 'vuex'
 
   const store = useStore()
 
-  console.log("pc_navigation成功挂载");
-  
+  const categoryListRef = ref(null)
+
+  // 收起高度（保持与原来 h-[70px] 一致）
+  const COLLAPSED_HEIGHT = 70
+  // 展开时在最后一项底部额外留出的间距（可按需微调）
+  const EXPANDED_GAP = 10
+
+  const containerHeight = ref(COLLAPSED_HEIGHT)
 
   /**
    * 展开状态切换
@@ -49,6 +56,47 @@
   const triggerState = () => {
     isOpenCategory.value = !isOpenCategory.value
   }
+
+  const updateContainerHeight = async () => {
+    // 收起：直接回到固定高度，避免测量抖动
+    if (!isOpenCategory.value) {
+      containerHeight.value = COLLAPSED_HEIGHT
+      return
+    }
+
+    await nextTick()
+    const el = categoryListRef.value
+    if (!el) return
+
+    // scrollHeight = 内容实际高度（含 padding），非常适合 flex-wrap 的场景
+    const full = el.scrollHeight
+    containerHeight.value = Math.max(full + EXPANDED_GAP, COLLAPSED_HEIGHT)
+  }
+
+  watch(
+    () => isOpenCategory.value,
+    () => {
+      updateContainerHeight()
+    }
+  )
+
+  // 分类列表变化时，如果处于展开态也要重新计算高度（比如异步拉取分类）
+  watch(
+    () => store.getters.categorys,
+    () => {
+      updateContainerHeight()
+    },
+    { deep: true }
+  )
+
+  const handleResize = () => updateContainerHeight()
+  onMounted(() => {
+    window.addEventListener('resize', handleResize)
+    updateContainerHeight()
+  })
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize)
+  })
 
   /**
    * 选中状态处理
