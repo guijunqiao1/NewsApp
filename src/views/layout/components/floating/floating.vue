@@ -1,11 +1,11 @@
 <template>
     <!-- 引导页 -->
     <div
-      class="fixed bottom-[30vh] right-[10px] guide-start w-4 h-4 mb-1 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
+      class="fixed bottom-[30vh] right-[10px] guide-start mb-1 flex h-3 w-3 cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-white duration-200 group hover:shadow-lg dark:border-0 dark:bg-zinc-900"
     >
       <m-svg-icon
         name="guide"
-        class="w-2 h-2"
+        class="h-1.5 w-1.5"
         fillClass="fill-zinc-900 dark:fill-zinc-200 group-hover:fill-main "
         @click="onGuideClick"
       ></m-svg-icon>
@@ -14,12 +14,12 @@
     <m-popover class="guide-feedback flex items-center" placement="top-left">
       <template #reference>
         <div
-          class="fixed bottom-[40vh] right-[10px] w-4 h-4 bg-white dark:bg-zinc-900 border dark:border-0 border-zinc-200 rounded-full flex justify-center items-center cursor-pointer duration-200 group hover:shadow-lg"
+          class="fixed bottom-[40vh] right-[10px] flex h-3 w-3 cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-white duration-200 group hover:shadow-lg dark:border-0 dark:bg-zinc-900"
           @click="onToFeedback"
         >
           <m-svg-icon
             name="feedback"
-            class="w-2 h-2"
+            class="h-1.5 w-1.5"
             fillClass="fill-zinc-900 dark:fill-zinc-200 group-hover:fill-main "
           ></m-svg-icon>
         </div>

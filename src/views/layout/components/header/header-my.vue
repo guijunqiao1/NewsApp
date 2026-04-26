@@ -28,7 +28,12 @@
         
       </div>
       <div v-else>
-        <m-button icon="profile" iconColor="#fff" @click="onToLogin"></m-button>
+        <m-button
+          icon="profile"
+          iconColor="#fff"
+          size="icon-default"
+          @click="onToLogin"
+        ></m-button>
       </div>
     </template>
     <!-- 默认插槽弹窗部分 -->

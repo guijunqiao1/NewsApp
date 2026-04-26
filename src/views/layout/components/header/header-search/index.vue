@@ -1,6 +1,12 @@
 <template>
-  <div class="w-full">
-    <m-search ref="search" v-model="inputValue" @search="onSearchHandler" class="guide-search">
+  <div class="w-full min-w-0 flex-1">
+    <m-search
+      ref="search"
+      v-model="inputValue"
+      data-app-guide="search"
+      @search="onSearchHandler"
+      class="guide-search"
+    >
       <template #dropdown>
         <div>
           <!-- 搜索提示列表 -->

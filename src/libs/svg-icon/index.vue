@@ -39,10 +39,12 @@
 </script>
 
 <style lang="scss" scoped>
-svg {
+/* :where() 特异性为 0，避免压过父级传入的 Tailwind w-* / h-*（否则会变成继承的 1em，在 useREM 放大根字号后异常巨大） */
+:where(svg) {
   width: 1em;
   height: 1em;
   display: inline-block;
   flex-shrink: 0;
+  vertical-align: middle;
 }
 </style>

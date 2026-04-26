@@ -3,7 +3,7 @@
     <template #reference>
       <m-svg-icon
         :name="svgIconName"
-        class="w-4 h-4 cursor-pointer duration-200 outline-none hover:bg-zinc-100/60 dark:hover:bg-zinc-900 px-1"
+        class="h-2.5 w-2.5 cursor-pointer rounded p-0.5 duration-200 outline-none hover:bg-zinc-100/60 dark:hover:bg-zinc-900"
         fillClass="bg-zinc-100/60 dark:fill-zinc-300"
       ></m-svg-icon>
     </template>

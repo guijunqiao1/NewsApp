@@ -12,9 +12,9 @@
       <!-- 图片 -->
       <img
        ref="imgTarget"
-       v-lazy 
+       v-lazy
        :src="data.pic" 
-       class="w-full rounded" 
+       class="w-full rounded"
        />
       <!-- 遮罩层 -->
       <div

@@ -265,7 +265,7 @@
         // 当列表长度变化时重置列高，避免旧状态影响
         useColumnHeightObj()
         nextTick(() => {// 将计算操作添加到微队列中--需要注意的是watch回调的内容本身也是微队列，此处还使用一次nextTick包裹内容进行微队列的加入的含义在于：
-          //   //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
+          //若当前watch还存在其他内容则优先执行其他内容，在本次微任务回调执行完成之后再执行nextTick微任务的回调
           if (props.picturePreReading) {
             console.log("选用了预加载");
             waitImgComplate()
