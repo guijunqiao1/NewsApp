@@ -1,5 +1,5 @@
 <template>
-  <svg aria-hidden="true">
+  <svg class="m-svg-icon" aria-hidden="true">
     <use :href="symbolId" :class="fillClass" :fill="color"/>
   </svg>
 </template>
@@ -38,9 +38,8 @@
 
 </script>
 
-<style lang="scss" scoped>
-/* :where() 特异性为 0，避免压过父级传入的 Tailwind w-* / h-*（否则会变成继承的 1em，在 useREM 放大根字号后异常巨大） */
-:where(svg) {
+<style lang="scss">
+:where(.m-svg-icon) {
   width: 1em;
   height: 1em;
   display: inline-block;

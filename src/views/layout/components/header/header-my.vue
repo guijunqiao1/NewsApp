@@ -1,5 +1,5 @@
 <template>
-  <m-popover class="flex items-center" placement="bottom-left">
+  <m-popover class="flex items-center" placement="bottom-right">
     <!-- 外观插槽部分 -->
     <template #reference>
       <div

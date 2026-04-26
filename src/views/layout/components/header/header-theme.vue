@@ -1,5 +1,5 @@
 <template>
-  <m-popover placement="bottom-left">
+  <m-popover placement="bottom-right">
     <template #reference>
       <m-svg-icon
         :name="svgIconName"

@@ -18,6 +18,11 @@ import './permission'
 
 createApp(App).use(mDirectives).use(router).use(store).use(mLibs).mount('#app');
 
+// 初始化：存在 token 时拉取用户信息（用于头像/昵称等展示）
+if (store.getters.token) {
+  store.dispatch('user/profile').catch(() => {})
+}
+
 //设置根元素的字体大小便于使用rem单位
 // 首发配置
 useREM();//启动计算

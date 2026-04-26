@@ -14,12 +14,17 @@
           :src="themeData.big.photo"
           alt=""
         />
-        <p
-          class="absolute bottom-0 left-0 w-full h-[45%] flex items-center backdrop-blur rounded px-1 text-white text-xs duration-300 hover:backdrop-blur-none"
+        <!-- 默认模糊全覆盖，hover 时去除模糊 -->
+        <div
+          class="absolute inset-0 backdrop-blur rounded duration-300 hover:backdrop-blur-none"
         >
-          # {{ themeData.big.title }}
-        </p>
-      </div>t
+          <p
+            class="absolute bottom-0 left-0 w-full px-1 py-1 text-white text-xs"
+          >
+            # {{ themeData.big.title }}
+          </p>
+        </div>
+      </div>
       <!-- 热门列表项展示 -->
       <div class="flex flex-wrap flex-1 max-w-[845px]">
         <div

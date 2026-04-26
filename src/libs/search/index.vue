@@ -26,7 +26,7 @@
       <m-svg-icon
         v-show="inputValue"
         name="input-delete"
-        class="w-1.5 h-1.5 absolute translate-y-[-50%] top-[50%] right-9 duration-500 cursor-pointer"
+        class="w-3 h-3 absolute translate-y-[-50%] top-[50%] right-9 duration-500 cursor-pointer opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
         @click="onClearClick"
       ></m-svg-icon>
       <!-- 分割线 -->
@@ -74,7 +74,7 @@
   // 失去焦点
   const EMIT_BLUR = 'blur'
   export default {
-    name: 'search'
+    name: 'm-search'
   }
 </script> 
 

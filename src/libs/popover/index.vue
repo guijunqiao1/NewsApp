@@ -51,6 +51,9 @@
     //获取插槽实例对象
     const slots = useSlots();
 
+    // 弹层与触发器间的间距（像素）
+    const OFFSET_GAP = 6
+
     const props = defineProps({
         // 气泡弹出位置，位置不对给出错误提示
         placement: {
@@ -111,40 +114,42 @@
      * 在气泡展示的时候再进行计算
      * 补充：nextTick（回调为微任务）: 等待 Vue 完成 DOM 更新后执行位置计算。因为气泡的定位需要依赖其他元素的尺寸，所以要在 DOM 渲染完成后才能获取这些尺寸并计算位置。
      */
-    watch(()=>isVisible, (value) => {
+    watch(isVisible, (value) => {
         if (!value) return
         // 等待元素渲染
         nextTick(() => {
+            const referenceSize = getElementSize(referenceTarget.value)
+            const contentSize = getElementSize(contentTarget.value)
             switch (props.placement) {//contentStyle设置的是相对位置的属性
                 // 左上
                 case PROP_TOP_LEFT:
                     contentStyle.value.top = 0
                     contentStyle.value.left =
-                    -getElementSize(contentTarget.value).width + 'px'
+                    -contentSize.width + 'px'
                     break
                 // 右上
                 case PROP_TOP_RIGHT:
                     contentStyle.value.top = 0
                     contentStyle.value.left =
-                    getElementSize(referenceTarget.value).width + 'px'
+                    referenceSize.width - contentSize.width + 'px'
                     break
                 // 左下
                 case PROP_BOTTOM_LEFT:
                     contentStyle.value.top =
-                    getElementSize(referenceTarget.value).height + 'px'
+                    referenceSize.height + OFFSET_GAP + 'px'
                     contentStyle.value.left =
-                    -getElementSize(contentTarget.value).width + 'px'
+                    -contentSize.width + 'px'
                     break
                 // 右下
                 case PROP_BOTTOM_RIGHT:
                     contentStyle.value.top =
-                    getElementSize(referenceTarget.value).height + 'px'
+                    referenceSize.height + OFFSET_GAP + 'px'
                     contentStyle.value.left =
-                    getElementSize(referenceTarget.value).width + 'px'
+                    referenceSize.width - contentSize.width + 'px'
                     break
             }
         })
-    },{deep:true})
+    })
 </script>
 
 <style lang="scss" scoped>
