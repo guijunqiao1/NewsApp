@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(node -e \"const data = require\\('/Users/guijunqiao/NewsApp/src/data/news_mock_data.json'\\); console.log\\('JSON文件有效！'\\); console.log\\('总共有', data.length, '条新闻数据'\\);\")",
+      "Bash(node *)"
+    ]
+  }
+}
