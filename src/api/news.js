@@ -34,15 +34,21 @@ function add_id(obj_item){
  * 获取新闻数据源
  */
 export const getNewsList = (data) => {
-  //模拟返回的promise
+  // 模拟返回的promise
   // 封装内容对象
+  
+  // 计算分页数据
+  const start = (data.start - 1) * data.nums;
+  const end = start + data.nums;
+  const paginatedList = mockNewsData.slice(start, end);
+  
   const res_obj = {
     "status": 0,
     "msg": "ok",
     "result": {
       "channel": "头条",
       "num": mockNewsData.length,
-      "list": mockNewsData
+      "list": paginatedList
     }
   };
 
