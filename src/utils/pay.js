@@ -16,5 +16,5 @@ export const alipay = async (title, desc) => {
     isMobile.value
   )
   // 解构--跳转网页
-  window.location.href = decodeURIComponent(encodeURI);//可提前传递参数进行响应结果的预知--存放在route中-和pay下的index.vue相互配合
+  window.location.href = decodeURIComponent(encodeURI);// 可提前传递参数进行响应结果的预知--存放在route中-和pay下的index.vue相互配合
 }

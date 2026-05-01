@@ -1,5 +1,6 @@
 <template>
   <div
+    data-pins-panel
     ref="scroll_all"
     class="fixed left-0 top-0 w-screen h-screen z-20 bg-zinc-200 pb-2 overflow-y-auto xl:p-2"
   >
@@ -78,8 +79,11 @@
         </div>
       </div>
     </div>
+    <scroll-back
+      :isShow="isScrollBackVisible&&isMobile"
+      @backTop="backTop"
+    ></scroll-back>
   </div>
-  <scroll-back :isShow="isScrollBackVisible&&isMobile" @backTop="backTop"></scroll-back>
 </template>
 
 <script>

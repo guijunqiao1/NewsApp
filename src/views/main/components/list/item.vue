@@ -3,6 +3,7 @@
     class="bg-white dark:bg-zinc-900 xl:dark:bg-zinc-800 rounded pb-1"
   >
     <div 
+    data-news-card-image
     class="group relative w-full cursor-zoom-in rounded"
     :style="{
       backgroundColor: randomRGB()
@@ -121,7 +122,7 @@
     const imgTarget = ref(null);//获取图像dom
     const { enter: onImgFullScreen } = useFullscreen(imgTarget);//调用全屏api同时解构以及别名获取到新对象---后续解释
 
-    const emits = defineEmits(['change_img_type'])
+    const emits = defineEmits(['change_img_type', 'open-pins'])
     
     const imgContainerCenter = computed(() => {
       // useElementBounding 仅在 window的 scroll 方法时被触发，所以移动端的 useElementBounding 不再具备响应式--此处改用getBoundingClientRect方法替代功能
@@ -135,15 +136,29 @@
       // 使用场景	      仅需要一次性测量（如拖拽起始点）	    需要实时追踪元素位置或大小变化（如浮层定位）
       // 性能开销	      小（但频繁调用会触发重排）              	稍高（持续监听变化）
       // 是否依赖 Vue	    ❌ 与框架无关	                  ✅ 仅能在 Vue 组合式 API 中使用
+      if (!imgTarget.value) {
+        return {
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          translateX: 0,
+          translateY: 0
+        }
+      }
       const {
-        x: imgContainerX,
-        y: imgContainerY,
-        width: imgContainerWidth,
-        height: imgContainerHeight
+        x,
+        y,
+        width,
+        height
       } = imgTarget.value.getBoundingClientRect()
       return {
-        translateX: parseInt(imgContainerX + imgContainerWidth / 2),
-        translateY: parseInt(imgContainerY + imgContainerHeight / 2)
+        x,
+        y,
+        width,
+        height,
+        translateX: parseInt(x + width / 2),
+        translateY: parseInt(y + height / 2)
       }
     })
 
@@ -153,14 +168,15 @@
      */
     const onToPinsClick = () => {//当前组件本身就是item项故无需传参指定target
       console.log("触发的是item的topins")
-      //计算img盒子类型
-      const { height,width } = window.getComputedStyle(imgTarget.value);
-      const img_type = height>=width?'shu':'heng';
-      emits('change_img_type', {//发射所触发的并不是自定义事件，同时传参为obj模拟item的信息对象
-        id: props.data.id,
-        location: imgContainerCenter,
+      const { height, width } = imgContainerCenter.value
+      const img_type = height >= width ? 'shu' : 'heng'
+      const payload = {
+        ...props.data,
+        location: imgContainerCenter.value,
         img_type
-      })
+      }
+      emits('change_img_type', payload)
+      emits('open-pins', payload)
     }
 
 
