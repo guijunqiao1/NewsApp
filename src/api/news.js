@@ -1,6 +1,54 @@
 import request from "@/utils/request";
 import mockNewsData from "@/data/news_mock_data.json";
 
+const ALL_CHANNELS = ['全部', '头条']
+
+const CHANNEL_KEYWORDS = {
+  新闻: ['新闻'],
+  国内: ['我国', '中国', '全国', '国产', '多地', '长江', '城市', '国家', '人民币', '高校', '快递', '住房', '公园', '秋粮'],
+  国际: ['以色列', '巴基斯坦', '阿富汗', '荷兰', '万斯', '特朗普', '跨洋', '邻国'],
+  政治: ['习近平', '政府', '政策', '谈判', '接管', '现代化', '峰会'],
+  财经: ['财经', '经济', '贸易', '增长', '市场', '万科', '董事长', '人民币', '租赁', '产值', '业务量', '销量', '交易', 'TACO'],
+  体育: ['体育', '比赛', '赛事', '球队', '冠军', '篮球', '足球', 'NBA'],
+  娱乐: ['娱乐', '文化', '旅游', '博物馆', '展览', '观众', '假期'],
+  军事: ['军事', '军方', '重炮', '坦克', '边境', '以色列', '巴基斯坦', '阿富汗', '哈马斯'],
+  教育: ['教育', '高校', '毕业生', '就业', '学校', '学生'],
+  科技: ['科技', '芯片', '5G', '人工智能', '量子', '智能', '储能', '电池', '大飞机', 'C919', '数字化', '计算', '网络'],
+  NBA: ['NBA', '篮球'],
+  股票: ['股票', '股', '万科', '交易', '市场', 'TACO', '董事长'],
+  星座: ['星座'],
+  女性: ['女性', '妇女'],
+  育儿: ['育儿', '母婴', '儿童', '孩子']
+}
+
+const getSearchText = (item) => {
+  return [item.title, item.src, item.category, item.content].filter(Boolean).join(' ')
+}
+
+const getFilteredNewsData = (channel) => {
+  if (!channel || ALL_CHANNELS.includes(channel)) {
+    return mockNewsData
+  }
+
+  if (channel === '新闻') {
+    return mockNewsData.filter((item) => item.category === 'news')
+  }
+
+  const keywords = CHANNEL_KEYWORDS[channel] || [channel]
+  return mockNewsData.filter((item) => {
+    const text = getSearchText(item)
+    return keywords.some((keyword) => text.includes(keyword))
+  })
+}
+
+const getPageParams = (data = {}) => {
+  return {
+    page: Math.max(Number(data.start) || 1, 1),
+    nums: Math.max(Number(data.nums) || 10, 1),
+    channel: data.channel || '全部'
+  }
+}
+
 //全局封装id标识生成方法
 function add_id(obj_item){
     obj_item.result.list.forEach((item) => {
@@ -33,21 +81,23 @@ function add_id(obj_item){
 /**
  * 获取新闻数据源
  */
-export const getNewsList = (data) => {
+export const getNewsList = (data = {}) => {
   // 模拟返回的promise
   // 封装内容对象
   
+  const { page, nums, channel } = getPageParams(data)
+  const filteredNewsData = getFilteredNewsData(channel)
   // 计算分页数据
-  const start = (data.start - 1) * data.nums;
-  const end = start + data.nums;
-  const paginatedList = mockNewsData.slice(start, end);
+  const start = (page - 1) * nums;
+  const end = start + nums;
+  const paginatedList = filteredNewsData.slice(start, end).map((item) => ({ ...item }));
   
   const res_obj = {
     "status": 0,
     "msg": "ok",
     "result": {
-      "channel": "头条",
-      "num": mockNewsData.length,
+      "channel": channel,
+      "num": filteredNewsData.length,
       "list": paginatedList
     }
   };

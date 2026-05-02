@@ -6,7 +6,14 @@
       :isFinished="isFinished"
       @onLoad="getNewsData"
     >
+      <div
+        v-if="isFinished && !newsList.length"
+        class="py-10 text-center text-sm text-zinc-400"
+      >
+        暂无该分类数据
+      </div>
       <m-waterfall
+        v-else
         class="p-1 w-full"
         :data="newsList"
         nodeKey="id"
@@ -47,7 +54,7 @@
   import { getNewsList } from '@/api/news'
   //引入新闻项组件
   import itemVue from './item.vue'
-  import { ref,watch } from 'vue'
+  import { nextTick, onMounted, ref,watch } from 'vue'
   import gsap from 'gsap'
   import { useEventListener } from '@vueuse/core'
   //引入储存库对象
@@ -64,8 +71,9 @@
   const loading = ref(false)
   // 数据是否全部加载完成
   const isFinished = ref(false)
+  const isRequesting = ref(false)
 
-  let query = { start: 0, nums: 10, channel:'头条' };
+  let query = { start: 0, nums: 10, channel: store.getters.currentCategory?.name || '头条' };
 
   /**
    * 通过重置query，重新发起请求
@@ -74,8 +82,12 @@
     query = { ...query, ...newQuery };//此处利用对象合并取后value的技巧
     // 重置状态
     isFinished.value = false
+    loading.value = true
     // waterfall 会监听数据变化，重新渲染布局
     newsList.value = []
+    nextTick(() => {
+      getNewsData()
+    })
   }
 
   // 监听 currentCategory 变化
@@ -104,18 +116,30 @@
 
   const getNewsData = async () => {
     console.log("此时需要更新数据");
-    if (isFinished.value) return;
-    // 让 page/start页数记录 自增
-    query.start++;
-    let res = await getNewsList(query);//需要注意此处被响应拦截包装了一层对象，使用result属性访问原值
-    newsList.value.push(...res.result.list)
-    console.log("newsList:",newsList.value);
-    // 判断是否全部加载完成
-    if (newsList.value.length === res.result.num) {
-      isFinished.value = true
+    if (isFinished.value || isRequesting.value) return;
+    isRequesting.value = true
+    loading.value = true
+    try {
+      // 让 page/start页数记录 自增
+      query.start++;
+      let res = await getNewsList(query);//需要注意此处被响应拦截包装了一层对象，使用result属性访问原值
+      newsList.value.push(...res.result.list)
+      console.log("newsList:",newsList.value);
+      // 判断是否全部加载完成
+      if (newsList.value.length >= res.result.num) {
+        isFinished.value = true
+      }
+    } finally {
+      loading.value = false
+      isRequesting.value = false
     }
-    loading.value = false
   }
+
+  onMounted(() => {
+    nextTick(() => {
+      getNewsData()
+    })
+  })
 
   // 控制 pins 展示
   const isVisiblePins = ref(false)
