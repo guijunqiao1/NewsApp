@@ -196,6 +196,20 @@ jobs:
           else
             service nginx stop 2>/dev/null || true
           fi
+          echo '   查找并终止所有占用 80 端口的进程...'
+          if command -v lsof >/dev/null 2>&1; then
+            lsof -ti:80 | xargs -r kill -9 2>/dev/null || true
+          elif command -v fuser >/dev/null 2>&1; then
+            fuser -k 80/tcp 2>/dev/null || true
+          fi
+          sleep 2
+          echo '   验证 80 端口是否已释放...'
+          if command -v netstat >/dev/null 2>&1; then
+            netstat -tlnp 2>/dev/null | grep ':80 ' || true
+          fi
+          if command -v ss >/dev/null 2>&1; then
+            ss -tlnp 2>/dev/null | grep ':80 ' || true
+          fi
 
           echo '3) 登录 TCR（在 ECS 上执行 docker login）...'
           echo "$TCR_PASSWORD" | docker login "$TCR_REGISTRY" -u "$TCR_USERNAME" --password-stdin
