@@ -2,11 +2,15 @@
   <div
     data-pins-panel
     ref="scroll_all"
-    class="fixed left-0 top-0 w-screen h-screen z-20 bg-zinc-200 pb-2 overflow-y-auto xl:p-2"
+    class="pins-page"
   >
-    <!-- mobile的pins顶部 -->
-    <!-- 移动端下展示 navbar -->
-    <m-navbar v-if="isMobile" @clickLeft="onPop" @clickRight="onPop" sticky>
+    <m-navbar
+      v-if="isMobile"
+      :clickLeft="onPop"
+      :clickRight="onShare"
+      sticky
+    >
+      <span class="pins-mobile-title">{{ now_item.src || now_item.category }}</span>
       <template #right>
         <m-svg-icon
           name="share"
@@ -15,89 +19,99 @@
         ></m-svg-icon>
       </template>
     </m-navbar>
-    <!-- pc的pins顶部 -->
-    <!-- pc 端下展示关闭图标 -->
-    <m-svg-icon
-      v-else
-      name="close"
-      class="w-3 h-3 ml-1 p-0.5 cursor-pointer duration-200 rounded-sm hover:bg-zinc-100 absolute right-2 top-2"
-      fillClass="fill-zinc-400"
-      @click="onPop"
-    ></m-svg-icon>
 
-    <div v-if="!isMobile" style="text-align: center;">《{{ now_item.title }}》</div>
-    <!-- 公共内容区 -->
-    <div v-if="now_item.title" class="xl:h-full xl:mx-auto xl:rounded-lg xl:flex">
-      <text v-if="isMobile">《{{ now_item.title }}》</text>
-      <div 
-      class="w-screen mb-2 xl:w-3/5 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg bg-white"
-      >
+    <main v-if="now_item.title" class="pins-shell">
+      <section class="pins-media-panel">
         <img
           ref="img_ele"
-          :class="style[img_type]"
+          :class="imageClass"
           :src="now_item.pic"
+          alt=""
         />
-      </div>
+      </section>
       
-      <div
-        class="xl:w-2/5 xl:h-full xl:bg-white xl:dark:bg-zinc-900 xl:rounded-tr-lg xl:rounded-br-lg xl:p-3 overflow-y-auto"
-      >
-        <!-- pc端独有内容 -->
-        <div v-if="!isMobile" class="flex justify-between mb-2">
+      <section class="pins-info-panel">
+        <div class="pins-toolbar">
+          <button
+            class="pins-icon-button"
+            aria-label="分享"
+            @click="onShare"
+          >
           <m-svg-icon
             name="share"
-            class="w-4 h-4 p-1 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 duration-300 rounded"
+              class="w-3 h-3"
+              fillClass="fill-zinc-900 dark:fill-zinc-200"
+            ></m-svg-icon>
+          </button>
+          <button
+            class="pins-icon-button"
+            aria-label="收藏"
+          >
+            <m-svg-icon
+              name="heart"
+              class="w-3 h-3"
             fillClass="fill-zinc-900 dark:fill-zinc-200"
           ></m-svg-icon>
-
-          <m-button
-            class=""
-            type="info"
-            icon="heart"
-            iconClass="fill-zinc-900 dark:fill-zinc-200"
-          />
-        </div>
-        <!-- 原文跳转  -->
-        <div class="">
-          <m-button
-            class="w-full dark:bg-zinc-900 xl:dark:bg-zinc-800"
+          </button>
+          <button
+            v-if="!isMobile"
+            class="pins-icon-button"
+            aria-label="关闭"
+            @click="onPop"
           >
-            <a :href="now_item.weburl" class="w-full" target="_blank" >点击此处进入原文</a>
-          </m-button>
+            <m-svg-icon
+              name="close"
+              class="w-3 h-3"
+              fillClass="fill-zinc-900 dark:fill-zinc-200"
+            ></m-svg-icon>
+          </button>
         </div>
-        <!-- 具体文本 -->
-        <div ref="contentRef" class="content">  
+
+        <header class="pins-header">
+          <h1 class="pins-title">{{ now_item.title }}</h1>
+          <div class="pins-meta">
+            <span>{{ now_item.category }}</span>
+            <span>{{ now_item.src }}</span>
         </div>
-        <!-- 类型/来源 -->
-        <div class="flex items-center mt-1 px-1">
-          <span class="text-base text-zinc-900 dark:text-zinc-200 ml-1">{{
-            now_item.category
-          }}</span>
-          <span class="text-base text-zinc-900 dark:text-zinc-200 ml-1">{{
-            now_item.src
-          }}</span>
-        </div>
-      </div>
-    </div>
+        </header>
+
+        <a
+          :href="now_item.weburl"
+          class="pins-source-link"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span>查看原文</span>
+          <m-svg-icon
+            name="transport"
+            class="w-2.5 h-2.5"
+            fillClass="fill-zinc-900 dark:fill-zinc-200"
+          ></m-svg-icon>
+        </a>
+
+        <article ref="contentRef" class="pins-content content"></article>
+      </section>
+    </main>
+
     <scroll-back
-      :isShow="isScrollBackVisible&&isMobile"
+      :isShow="isScrollBackVisible && isMobile"
       @backTop="backTop"
     ></scroll-back>
   </div>
 </template>
 
 <script>
-  const style = { 
-    shu:"h-[100%] mb-2 mx-auto",
-    heng:"w-screen mb-2 xl:h-full xl:rounded-tl-lg xl:rounded-bl-lg"
+  export default {
+    name: 'pins-detail'
   }
 </script>
 
 <script setup>
-  import { ref,onMounted, nextTick, watch, onUnmounted } from 'vue'
-  import { isMobile } from '@/utils/flexible.js'
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
-  import scrollBack from "@/views/main/components/scroll-back/index.vue";
+  import { isMobile } from '@/utils/flexible.js'
+  import { weiboShare } from '@/utils/share'
+  import scrollBack from '@/views/main/components/scroll-back/index.vue'
 
   const props = defineProps({
     now_item: {
@@ -105,96 +119,325 @@
         required: true
     },
     img_type: {
-      type:String,
-      required:true,
+      type: String,
+      required: true
     }
   })
 
-  watch(() => props.img_type, () => {
-    console.log("成功传入到pins的obj：",props.now_item);
-  }, { deep: true })
+  const imageClass = computed(() => {
+    return [
+      'pins-image',
+      props.img_type === 'shu' ? 'pins-image-portrait' : 'pins-image-landscape'
+    ]
+  })
 
-
-  /** 
-   * 关闭按钮处理事件
-   */
   const router = useRouter()
   const onPop = () => {
     router.back()
   }
 
-  // 使用 ref 直接引用 DOM 元素
+  const onShare = () => {
+    weiboShare(props.now_item.pic, window.location.href)
+  }
+
   const contentRef = ref(null)
 
   // 填充内容的函数
   const fillContent = () => {
     nextTick(() => {
-      console.log("contentRef:",contentRef.value);
-      console.log("props.now_item:",props.now_item);
-      
-      // 如果 ref 引用失败，尝试使用 querySelector 作为备选方案
-      let contentElement = contentRef.value;
-      if (!contentElement) {
-        contentElement = document.querySelector('.content');
-        console.log("备选方案 contentElement:",contentElement);
+      if (contentRef.value) {
+        contentRef.value.innerHTML = props.now_item.content || ''
       }
-      
-      if (contentElement && props.now_item.content) {
-        contentElement.innerHTML = props.now_item.content;
-        console.log("成功填充内容");
-      } else {
-        console.log("填充失败 - contentElement:", !!contentElement, "content:", !!props.now_item.content);
-      }
-    });
+    })
   }
 
-  // 挂载完毕填充实际元素
   onMounted(() => {
-    fillContent();
+    fillContent()
   })
 
-  // 监听 props.now_item 变化，确保内容能及时更新
-  watch(() => props.now_item, () => {
-    fillContent();
-  }, { deep: true })
+  watch(
+    () => props.now_item,
+    () => {
+      fillContent()
+    },
+    { deep: true }
+  )
 
-  const scroll_all = ref();
-  const isScrollBackVisible = ref(false);
+  const scroll_all = ref()
+  const isScrollBackVisible = ref(false)
 
-  function backTop(){
-    // 滚动到顶部
+  const backTop = () => {
     if (scroll_all.value) {
-      scroll_all.value.scrollTop = 0;
+      scroll_all.value.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      })
     }
   }
 
-  // 监听滚动事件
   const handleScroll = () => {
-    if (!scroll_all.value) return;
+    if (!scroll_all.value) return
     
-    const scrollTop = scroll_all.value.scrollTop;
-    const scrollHeight = scroll_all.value.scrollHeight;
-    const clientHeight = scroll_all.value.clientHeight;
-    
-    // 当滚动超过一半时显示回到顶部按钮
-    const shouldShow = scrollTop > (scrollHeight - clientHeight) / 2;
-  
-    isScrollBackVisible.value = shouldShow;
+    const scrollTop = scroll_all.value.scrollTop
+    const scrollHeight = scroll_all.value.scrollHeight
+    const clientHeight = scroll_all.value.clientHeight
+    isScrollBackVisible.value = scrollTop > (scrollHeight - clientHeight) / 2
   }
 
-  // 在组件挂载后添加滚动监听
   onMounted(() => {
     if (scroll_all.value) {
-      scroll_all.value.addEventListener('scroll', handleScroll);
+      scroll_all.value.addEventListener('scroll', handleScroll)
     }
   })
 
-  // 组件卸载时清理事件监听器
   onUnmounted(() => {
     if (scroll_all.value) {
-      scroll_all.value.removeEventListener('scroll', handleScroll);
+      scroll_all.value.removeEventListener('scroll', handleScroll)
     }
   })
-
-
 </script>
+
+<style lang="scss" scoped>
+  .pins-page {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    overflow-y: auto;
+    background:
+      linear-gradient(180deg, rgb(244 244 245) 0%, rgb(228 228 231) 100%);
+  }
+
+  :global(.dark) .pins-page {
+    background:
+      linear-gradient(180deg, rgb(24 24 27) 0%, rgb(9 9 11) 100%);
+  }
+
+  .pins-mobile-title {
+    display: block;
+    max-width: 62vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pins-shell {
+    display: grid;
+    min-height: calc(100dvh - 40px);
+    background: rgb(255 255 255);
+  }
+
+  .pins-media-panel {
+    display: flex;
+    min-height: 42vh;
+    align-items: center;
+    justify-content: center;
+    background: #020617;
+  }
+
+  .pins-image {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+  }
+
+  .pins-image-landscape {
+    width: 100%;
+  }
+
+  .pins-image-portrait {
+    max-height: 72vh;
+  }
+
+  .pins-info-panel {
+    background: rgb(255 255 255);
+    color: rgb(24 24 27);
+    padding: 18px 16px 28px;
+  }
+
+  :global(.dark) .pins-info-panel {
+    background: rgb(24 24 27);
+    color: rgb(244 244 245);
+  }
+
+  .pins-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .pins-icon-button {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgb(244 244 245);
+    transition:
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  :global(.dark) .pins-icon-button {
+    background: rgb(39 39 42);
+  }
+
+  .pins-icon-button:hover {
+    transform: translateY(-1px);
+    background: rgb(228 228 231);
+  }
+
+  :global(.dark) .pins-icon-button:hover {
+    background: rgb(63 63 70);
+  }
+
+  .pins-header {
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgb(228 228 231);
+  }
+
+  :global(.dark) .pins-header {
+    border-bottom-color: rgb(63 63 70);
+  }
+
+  .pins-title {
+    font-size: 22px;
+    line-height: 1.35;
+    font-weight: 700;
+    color: rgb(24 24 27);
+  }
+
+  :global(.dark) .pins-title {
+    color: rgb(244 244 245);
+  }
+
+  .pins-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    color: rgb(113 113 122);
+    font-size: 13px;
+  }
+
+  .pins-meta span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: rgb(244 244 245);
+  }
+
+  :global(.dark) .pins-meta span {
+    color: rgb(212 212 216);
+    background: rgb(39 39 42);
+  }
+
+  .pins-source-link {
+    display: flex;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    border-radius: 8px;
+    background: rgb(24 24 27);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    transition:
+      transform 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .pins-source-link:hover {
+    transform: translateY(-1px);
+    background: rgb(39 39 42);
+  }
+
+  :global(.dark) .pins-source-link {
+    background: rgb(244 244 245);
+    color: rgb(24 24 27);
+  }
+
+  .pins-content {
+    margin-top: 18px;
+    color: rgb(63 63 70);
+    font-size: 15px;
+    line-height: 1.85;
+  }
+
+  :global(.dark) .pins-content {
+    color: rgb(212 212 216);
+  }
+
+  .pins-content :deep(p) {
+    margin: 0 0 14px;
+  }
+
+  .pins-content :deep(img) {
+    max-width: 100%;
+    height: auto;
+    margin: 14px auto;
+    border-radius: 8px;
+  }
+
+  .pins-content :deep(a) {
+    color: rgb(37 99 235);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 1280px) {
+    .pins-page {
+      padding: 12px;
+    }
+
+    .pins-shell {
+      grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr);
+      height: calc(100dvh - 24px);
+      min-height: 0;
+      max-width: 1280px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid rgb(228 228 231);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgb(15 23 42 / 12%);
+    }
+
+    :global(.dark) .pins-shell {
+      border-color: rgb(63 63 70);
+      box-shadow: 0 20px 60px rgb(0 0 0 / 32%);
+    }
+
+    .pins-media-panel {
+      min-height: 0;
+      height: 100%;
+    }
+
+    .pins-image {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .pins-image-landscape {
+      width: 100%;
+      height: auto;
+    }
+
+    .pins-image-portrait {
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .pins-info-panel {
+      overflow-y: auto;
+      padding: 18px 20px 28px;
+    }
+  }
+</style>
