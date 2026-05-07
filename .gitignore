@@ -26,3 +26,5 @@ dist-ssr
 
 # CI 临时私钥（仅 runner 使用，勿提交）
 deploy_key
+
+upload-sdk/*

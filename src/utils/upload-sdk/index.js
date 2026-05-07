@@ -1,0 +1,6 @@
+export { EventEmitter } from './core/event-emitter'
+export { Task, TaskQueue } from './core/task-queue'
+export { createChunk, createChunks, calcChunkHash } from './client/chunk'
+export { ChunkSplitor, IdleSplitor, MultiThreadSplitor } from './client/chunk-splitor'
+export { UploadController } from './client/upload-controller'
+export { DefaultRequestStrategy } from './protocol/default-request-strategy'
